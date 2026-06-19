@@ -38,6 +38,15 @@ gizmo-axis-x: "&cX Axis"
 gizmo-axis-y: "&aY Axis"
 gizmo-axis-z: "&9Z Axis"
 
+# Gizmo transformation messages
+gizmo-mode-name-move: "Move"
+gizmo-mode-name-rotate: "Rotate"
+gizmo-mode-name-scale: "Scale"
+gizmo-transform-display-invalid: "&cThe gizmo display is no longer valid."
+gizmo-transform-started: "&a{mode} started. &fMove your view; right-click to confirm, crouch to cancel."
+gizmo-transform-confirmed: "&aTransformation confirmed."
+gizmo-transform-cancelled: "&eTransformation cancelled."
+
 # GUI titles
 gui-main-title: "&8✦ &6VisualWand &8- &fMain Menu"
 gui-create-title: "&8✦ &6Create &8- &fSelect Type"

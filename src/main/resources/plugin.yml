@@ -1,8 +1,8 @@
 name: VisualWand
-version: ${project.version}
+version: ${version}
 main: dev.kiddo.visualwand.VisualWand
 api-version: '1.21'
-author: Nariaris
+authors: [Nariaris, Kiddooo]
 description: In-Game Display Entity Editor with Gizmo Transformations
 
 commands:
