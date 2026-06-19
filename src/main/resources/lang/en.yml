@@ -47,6 +47,16 @@ gizmo-transform-started: "&a{mode} started. &fMove your view; right-click to con
 gizmo-transform-confirmed: "&aTransformation confirmed."
 gizmo-transform-cancelled: "&eTransformation cancelled."
 
+gizmo-move-started: "&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch to cancel."
+gizmo-move-targeting-air: "&eMovement targeting: &fAIR"
+gizmo-move-targeting-surface: "&aMovement targeting: &fSURFACE"
+gizmo-move-mode-air: "&eAIR"
+gizmo-move-mode-surface: "&aSURFACE"
+gizmo-move-mode-surface-no-hit: "&cSURFACE—NO HIT"
+gizmo-move-actionbar: "&6Move &8| &f{distance} blocks &8| {mode} &8| &fScroll: depth, Q: targeting"
+gizmo-move-confirmed: "&aMove confirmed."
+gizmo-move-cancelled: "&eMove cancelled."
+
 # GUI titles
 gui-main-title: "&8✦ &6VisualWand &8- &fMain Menu"
 gui-create-title: "&8✦ &6Create &8- &fSelect Type"

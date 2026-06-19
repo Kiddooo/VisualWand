@@ -20,19 +20,50 @@ wand:
 
 # Gizmo settings
 gizmo:
-  # Particle density (higher = more particles)
+  # Existing settings retained from the base plugin.
   particle-density: 20
-  # Gizmo size
   size: 1.5
-  # Update interval in ticks (lower = smoother but more CPU)
   update-interval: 2
-  # Colors (RGB)
+
   colors:
-    x-axis: [255, 0, 0]      # Red
-    y-axis: [0, 255, 0]      # Green
-    z-axis: [0, 0, 255]      # Blue
-    scale: [255, 255, 0]     # Yellow
-    rotation: [255, 0, 255]  # Magenta
+    x-axis: [255, 0, 0]
+    y-axis: [0, 255, 0]
+    z-axis: [0, 0, 255]
+    scale: [255, 255, 0]
+    rotation: [255, 0, 255]
+
+  # Crosshair movement preview introduced in Patch 2.
+  move-preview:
+    # Interaction behaviour
+    min-distance: 0.5
+    max-distance: 512.0
+    scroll-step: 1.0
+    fast-scroll-multiplier: 5.0
+    surface-offset: 0.02
+
+    # Update cadence, in server ticks
+    update-interval: 1
+    actionbar-update-interval: 10
+
+    # Preview geometry
+    axis-length: 0.24
+    offset-line-threshold: 0.05
+    beam-samples: 24
+    axis-samples: 5
+    offset-samples: 12
+
+    # Semantic movement colours. Axis marker colours continue to use
+    # gizmo.colors.x-axis, y-axis and z-axis above.
+    colors:
+      air: [255, 210, 45]
+      surface: [75, 225, 95]
+      no-surface: [235, 70, 70]
+      offset: [230, 230, 230]
+
+    particle-sizes:
+      beam: 0.65
+      axis: 0.8
+      offset: 0.45
 
 # Editor settings
 editor:
