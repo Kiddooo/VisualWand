@@ -3,8 +3,8 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
-group = "cafe.minigames"
-version = "231.12.0"
+group = "dev.kiddo"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ java {
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "cafe.minigames.visualwand.VisualWand"
+        attributes["Main-Class"] = "dev.kiddo.visualwand.VisualWand"
     }
 }
 
