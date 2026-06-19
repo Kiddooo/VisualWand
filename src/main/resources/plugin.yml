@@ -1,6 +1,6 @@
 name: VisualWand
 version: ${project.version}
-main: cafe.minigames.visualwand.VisualWand
+main: dev.kiddo.visualwand.VisualWand
 api-version: '1.21'
 author: Nariaris
 description: In-Game Display Entity Editor with Gizmo Transformations
