@@ -1,0 +1,48 @@
+plugins {
+    java
+    id("xyz.jpenilla.run-paper") version "3.0.2"
+}
+
+group = "cafe.minigames"
+version = "231.12.0"
+
+repositories {
+    mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "cafe.minigames.visualwand.VisualWand"
+    }
+}
+
+tasks.processResources {
+    expand("version" to version)
+}
+
+tasks {
+    runServer {
+        minecraftVersion("1.21.11")
+        jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")
+    }
+}
+
+tasks.runServer {
+    doFirst {
+        val cfg = runDirectory.get().asFile.resolve("plugins/bStats/config.yml")
+        if (!cfg.exists()) {
+            cfg.parentFile.mkdirs()
+            cfg.writeText("enabled: false\n")
+        }
+    }
+}
