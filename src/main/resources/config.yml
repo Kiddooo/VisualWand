@@ -64,6 +64,34 @@ gizmo:
       beam: 0.65
       axis: 0.8
       offset: 0.45
+  transform-controls:
+    # How often active transform sessions update, in server ticks.
+    update-interval: 1
+
+    # How often the action bar is refreshed, in transform-session updates.
+    actionbar-update-interval: 8
+
+    # Temporarily outline the selected display while transforming.
+    glow-while-transforming: true
+
+    move:
+      min-distance: 0.5
+      max-distance: 512.0
+      scroll-step: 1.0
+      fast-scroll-multiplier: 5.0
+      surface-offset: 0.02
+
+    scale:
+      # Multiplicative amount applied per mouse-wheel step.
+      factor: 1.10
+      fine-factor: 1.02
+      min: 0.01
+      max: 100.0
+
+    rotation:
+      step-degrees: 15.0
+      fine-step-degrees: 5.0
+      initial-axis: Y
 
 # Editor settings
 editor:

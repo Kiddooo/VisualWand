@@ -1,325 +1,306 @@
-# VisualWand - English Language File
+# VisualWand - English language file
 
-# General messages
-prefix: "&8[&6VisualWand&8] "
-no-permission: "&cYou don't have permission for this action!"
-player-only: "&cThis command is only available for players!"
-reload-success: "&aConfiguration reloaded!"
-lang-changed: "&aLanguage changed to: &eENGLISH"
-lang-invalid: "&cInvalid language! Use: &e/vw lang pl &cor &e/vw lang en"
+# General
+prefix: '&8[&6VisualWand&8] '
+no-permission: '&cYou don''t have permission for this action!'
+player-only: '&cThis command is only available for players!'
+reload-success: '&aConfiguration reloaded!'
+lang-changed: '&aLanguage changed to: &eENGLISH'
+lang-invalid: '&cInvalid language! Use: &e/vw lang pl &cor &e/vw lang en'
 
-# Wand messages
-wand-name: "&6✦ &eArchitect's Wand &6✦"
+# Wand
+wand-name: '&6✦ &eArchitect''s Wand &6✦'
 wand-lore:
-  - "&7"
-  - "&fRMB in air: &eCreate objects"
-  - "&fRMB on object: &eEdit"
-  - "&fShift + RMB: &cDelete"
-  - "&7"
-wand-received: "&aYou received the &eArchitect's Wand&a!"
-wand-already-has: "&eYou already have the Architect's Wand!"
+  - '&7'
+  - '&fRMB in air: &eCreate objects'
+  - '&fRMB on object: &eEdit'
+  - '&fShift + RMB: &cDelete'
+  - '&7'
+wand-received: '&aYou received the &eArchitect''s Wand&a!'
+wand-already-has: '&eYou already have the Architect''s Wand!'
 
-# Display creation
-display-created: "&aCreated new object: &e{type}"
-display-deleted: "&cDeleted display object!"
-text-display-default: "Click to edit"
-display-not-found: "&cNo display object found in line of sight!"
+# Displays
+display-created: '&aCreated new object: &e{type}'
+display-deleted: '&cDeleted display object!'
+text-display-default: Click to edit
+display-not-found: '&cNo display object found in line of sight!'
 
-# Editor messages
-editor-opened: "&aOpened editor for: &e{type}"
-editor-closed: "&7Editor closed."
-editor-saved: "&aChanges saved!"
+# Editor
+editor-opened: '&aOpened editor for: &e{type}'
+editor-closed: '&7Editor closed.'
+editor-saved: '&aChanges saved!'
 
-# Gizmo messages
-gizmo-mode-move: "&aActivated mode: &eMove"
-gizmo-mode-rotate: "&aActivated mode: &eRotate"
-gizmo-mode-scale: "&aActivated mode: &eScale"
-gizmo-axis-x: "&cX Axis"
-gizmo-axis-y: "&aY Axis"
-gizmo-axis-z: "&9Z Axis"
+# Gizmo modes and axes
+gizmo-mode-move: '&aActivated mode: &eMove'
+gizmo-mode-rotate: '&aActivated mode: &eRotate'
+gizmo-mode-scale: '&aActivated mode: &eScale'
+gizmo-mode-name-move: Move
+gizmo-mode-name-rotate: Rotate
+gizmo-mode-name-scale: Scale
+gizmo-axis-x: '&cX'
+gizmo-axis-y: '&2Y'
+gizmo-axis-z: '&9Z'
 
-# Gizmo transformation messages
-gizmo-mode-name-move: "Move"
-gizmo-mode-name-rotate: "Rotate"
-gizmo-mode-name-scale: "Scale"
-gizmo-transform-display-invalid: "&cThe gizmo display is no longer valid."
-gizmo-transform-started: "&a{mode} started. &fMove your view; right-click to confirm, crouch to cancel."
-gizmo-transform-confirmed: "&aTransformation confirmed."
-gizmo-transform-cancelled: "&eTransformation cancelled."
+# Gizmo transformations
+gizmo-transform-display-invalid: '&cThe gizmo display is no longer valid.'
+gizmo-transform-started: '&a{mode} started. &fMove your view; right-click to confirm, crouch to cancel.'
+gizmo-transform-confirmed: '&aTransformation confirmed.'
+gizmo-transform-cancelled: '&eTransformation cancelled.'
+gizmo-transform-saved-actionbar: '&aTransformation saved.'
+gizmo-transform-cancelled-actionbar: '&eTransformation cancelled.'
+gizmo-transform-wand-put-away: '&eTransformation cancelled because the wand was put away.'
 
-gizmo-move-started: "&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch to cancel."
-gizmo-move-targeting-air: "&eMovement targeting: &fAIR"
-gizmo-move-targeting-surface: "&aMovement targeting: &fSURFACE"
-gizmo-move-mode-air: "&eAIR"
-gizmo-move-mode-surface: "&aSURFACE"
-gizmo-move-mode-surface-no-hit: "&cSURFACE—NO HIT"
-gizmo-move-actionbar: "&6Move &8| &f{distance} blocks &8| {mode} &8| &fScroll: depth, Q: targeting"
-gizmo-move-confirmed: "&aMove confirmed."
-gizmo-move-cancelled: "&eMove cancelled."
+# Gizmo movement
+gizmo-move-started: '&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch to cancel.'
+gizmo-move-targeting-air: '&eMovement targeting: &fAIR'
+gizmo-move-targeting-surface: '&aMovement targeting: &fSURFACE'
+gizmo-move-mode-air: '&eAIR'
+gizmo-move-mode-surface: '&aSURFACE'
+gizmo-move-mode-surface-no-hit: '&cSURFACE—NO HIT'
+gizmo-move-actionbar: '&6MOVE &8| &f{distance} blocks &8| {mode} &8| &fWheel: depth &8| &fQ: target mode &8| &aRMB: save &8| &cSneak: cancel'
+gizmo-move-confirmed: '&aMove confirmed.'
+gizmo-move-cancelled: '&eMove cancelled.'
+
+# Gizmo scaling
+gizmo-scale-started: '&aScale started. &fUse the mouse wheel to resize; sprint + wheel is fine adjustment; right-click confirms; crouch cancels.'
+gizmo-scale-actionbar: '&6SCALE &8| &fX {x}  Y {y}  Z {z} &8| &fWheel: size &8| &fSprint: fine &8| &aRMB: save &8| &cSneak: cancel'
+
+# Gizmo rotation
+gizmo-rotation-started: '&aRotate started on {axis}&a. &fUse the mouse wheel to rotate; press Q to cycle axes; sprint + wheel is fine adjustment; right-click confirms; crouch cancels.'
+gizmo-rotation-axis-changed: '&eRotation axis: {axis}&e.'
+gizmo-rotation-actionbar: '&6ROTATE &8| {axis} axis &8| &f{angle} &8| &fWheel: rotate &8| &fQ: axis &8| &fSprint: fine &8| &aRMB: save &8| &cSneak: cancel'
 
 # GUI titles
-gui-main-title: "&8✦ &6VisualWand &8- &fMain Menu"
-gui-create-title: "&8✦ &6Create &8- &fSelect Type"
-gui-edit-title: "&8✦ &6Edit &8- &f{type}"
-gui-block-select-title: "&8✦ &6Select Block"
-gui-item-select-title: "&8✦ &6Select Item"
-gui-animation-title: "&8✦ &6Animations"
-gui-transform-title: "&8✦ &6Transformations"
+gui-main-title: '&8✦ &6VisualWand &8- &fMain Menu'
+gui-create-title: '&8✦ &6Create &8- &fSelect Type'
+gui-edit-title: '&8✦ &6Edit &8- &f{type}'
+gui-block-select-title: '&8✦ &6Select Block'
+gui-item-select-title: '&8✦ &6Select Item'
+gui-animation-title: '&8✦ &6Animations'
+gui-transform-title: '&8✦ &6Transformations'
 
-# GUI items
-gui-create-block: "&e✦ Block Display"
+# GUI navigation and editor actions
+gui-create-block: '&e✦ Block Display'
 gui-create-block-lore:
-  - "&7"
-  - "&fCreates a block display."
-  - "&7Perfect for decorations and builds."
-  - "&7"
-  - "&aClick to create!"
-
-gui-create-item: "&b✦ Item Display"
+  - '&7'
+  - '&fCreates a block display.'
+  - '&7Perfect for decorations and builds.'
+  - '&7'
+  - '&aClick to create!'
+gui-create-item: '&b✦ Item Display'
 gui-create-item-lore:
-  - "&7"
-  - "&fCreates an item display."
-  - "&7Supports Custom Model Data!"
-  - "&7"
-  - "&aClick to create!"
-
-gui-create-text: "&a✦ Text Display"
+  - '&7'
+  - '&fCreates an item display.'
+  - '&7Supports Custom Model Data!'
+  - '&7'
+  - '&aClick to create!'
+gui-create-text: '&a✦ Text Display'
 gui-create-text-lore:
-  - "&7"
-  - "&fCreates a text display."
-  - "&7Supports colors and formatting."
-  - "&7"
-  - "&aClick to create!"
-
-gui-edit-transform: "&6⚙ Transformations"
+  - '&7'
+  - '&fCreates a text display.'
+  - '&7Supports colors and formatting.'
+  - '&7'
+  - '&aClick to create!'
+gui-edit-transform: '&6⚙ Transformations'
 gui-edit-transform-lore:
-  - "&7"
-  - "&fMove, rotate and scale the object."
-  - "&7"
-  - "&eClick to open!"
-
-gui-edit-animation: "&d✿ Animations"
+  - '&7'
+  - '&fMove, rotate and scale the object.'
+  - '&7'
+  - '&eClick to open!'
+gui-edit-animation: '&d✿ Animations'
 gui-edit-animation-lore:
-  - "&7"
-  - "&fAdd animations to the object."
-  - "&7"
-  - "&eClick to open!"
-
-gui-edit-properties: "&b✎ Properties"
+  - '&7'
+  - '&fAdd animations to the object.'
+  - '&7'
+  - '&eClick to open!'
+gui-edit-properties: '&b✎ Properties'
 gui-edit-properties-lore:
-  - "&7"
-  - "&fChange object properties."
-  - "&7"
-  - "&eClick to open!"
-
-gui-edit-delete: "&c✖ Delete"
+  - '&7'
+  - '&fChange object properties.'
+  - '&7'
+  - '&eClick to open!'
+gui-edit-delete: '&c✖ Delete'
 gui-edit-delete-lore:
-  - "&7"
-  - "&fDeletes this object permanently!"
-  - "&7"
-  - "&cClick to delete!"
+  - '&7'
+  - '&fDeletes this object permanently!'
+  - '&7'
+  - '&cClick to delete!'
+gui-back: '&7« Back'
+gui-close: '&c✖ Close'
 
-gui-back: "&7« Back"
-gui-close: "&c✖ Close"
-
-# Transform GUI
-gui-move-x-plus: "&c+X &7(Right)"
-gui-move-x-minus: "&c-X &7(Left)"
-gui-move-y-plus: "&a+Y &7(Up)"
-gui-move-y-minus: "&a-Y &7(Down)"
-gui-move-z-plus: "&9+Z &7(Forward)"
-gui-move-z-minus: "&9-Z &7(Backward)"
-
-gui-rotate-x: "&cRotate X"
-gui-rotate-y: "&aRotate Y"
-gui-rotate-z: "&9Rotate Z"
-gui-rotate-reset: "&7⟲ Reset Rotation"
-
-gui-scale-up: "&e↑ Scale Up"
-gui-scale-down: "&e↓ Scale Down"
-gui-scale-reset: "&7⟲ Reset Scale"
-
-gui-gizmo-toggle: "&6✦ Toggle Gizmo"
+# Transformation GUI
+gui-move-x-plus: '&c+X &7(Right)'
+gui-move-x-minus: '&c-X &7(Left)'
+gui-move-y-plus: '&a+Y &7(Up)'
+gui-move-y-minus: '&a-Y &7(Down)'
+gui-move-z-plus: '&9+Z &7(Forward)'
+gui-move-z-minus: '&9-Z &7(Backward)'
+gui-rotate-x: '&cRotate X'
+gui-rotate-y: '&aRotate Y'
+gui-rotate-z: '&9Rotate Z'
+gui-rotate-reset: '&7⟲ Reset Rotation'
+gui-scale-up: '&e↑ Scale Up'
+gui-scale-down: '&e↓ Scale Down'
+gui-scale-reset: '&7⟲ Reset Scale'
+gui-gizmo-toggle: '&6✦ Toggle Gizmo'
 gui-gizmo-toggle-lore:
-  - "&7"
-  - "&fEnables/disables visual gizmo."
-  - "&7Currently: &e{status}"
-  - "&7"
-  - "&eClick to toggle!"
+  - '&7'
+  - '&fEnables/disables visual gizmo.'
+  - '&7Currently: &e{status}'
+  - '&7'
+  - '&eClick to toggle!'
 
 # Animation GUI
-gui-anim-slow-rotation: "&e✦ Slow Rotation"
+gui-anim-slow-rotation: '&e✦ Slow Rotation'
 gui-anim-slow-rotation-lore:
-  - "&7"
-  - "&fObject rotates slowly."
-  - "&7Perfect for trophies and lootboxes."
-  - "&7"
-  - "&aClick to apply!"
-
-gui-anim-levitation: "&b✦ Levitation"
+  - '&7'
+  - '&fObject rotates slowly.'
+  - '&7Perfect for trophies and lootboxes.'
+  - '&7'
+  - '&aClick to apply!'
+gui-anim-levitation: '&b✦ Levitation'
 gui-anim-levitation-lore:
-  - "&7"
-  - "&fObject floats up and down."
-  - "&7Great effect for signposts."
-  - "&7"
-  - "&aClick to apply!"
-
-gui-anim-pulsing: "&d✦ Pulsing"
+  - '&7'
+  - '&fObject floats up and down.'
+  - '&7Great effect for signposts.'
+  - '&7'
+  - '&aClick to apply!'
+gui-anim-pulsing: '&d✦ Pulsing'
 gui-anim-pulsing-lore:
-  - "&7"
-  - "&fObject pulses (changes size)."
-  - "&7Attracts player attention!"
-  - "&7"
-  - "&aClick to apply!"
-
-gui-anim-stop: "&c✖ Stop Animation"
+  - '&7'
+  - '&fObject pulses (changes size).'
+  - '&7Attracts player attention!'
+  - '&7'
+  - '&aClick to apply!'
+gui-anim-stop: '&c✖ Stop Animation'
 gui-anim-stop-lore:
-  - "&7"
-  - "&fStops the current animation."
-  - "&7"
-  - "&cClick to stop!"
+  - '&7'
+  - '&fStops the current animation.'
+  - '&7'
+  - '&cClick to stop!'
 
-# Text Display specific
-text-enter-message: "&eType text in chat:"
-text-set-success: "&aText set: &f{text}"
-text-background-toggle: "&7Background: {status}"
-text-see-through-toggle: "&7See through blocks: {status}"
+# Display properties
+gui-prop-billboard: '&eBillboard: &f{value}'
+gui-prop-billboard-lore:
+  - '&7'
+  - '&fDetermines how object rotates towards player.'
+  - '&7FIXED - Does not rotate'
+  - '&7VERTICAL - Rotates vertically'
+  - '&7HORIZONTAL - Rotates horizontally'
+  - '&7CENTER - Always faces the player'
+  - '&7'
+  - '&eClick to change!'
+gui-prop-glow: '&eGlow'
+gui-prop-glow-lore:
+  - '&7'
+  - '&fSet object glow color.'
+  - '&7'
+  - '&eClick to toggle!'
+gui-prop-view-range: '&eView Range: &f{value}'
+gui-prop-view-range-lore:
+  - '&7'
+  - '&fHow far the object is visible.'
+  - '&7'
+  - '&eLMB: +0.5 | RMB: -0.5'
+gui-prop-shadow: '&eShadow: &f{value}'
+gui-prop-shadow-lore:
+  - '&7'
+  - '&fShadow radius under the object.'
+  - '&7'
+  - '&eLMB: +0.1 | RMB: -0.1'
+gui-prop-brightness: '&eBrightness'
+gui-prop-brightness-lore:
+  - '&7'
+  - '&fSet custom object brightness.'
+  - '&7Current: {value}'
+  - '&7'
+  - '&eLMB: +1 | RMB: -1 | Shift: Reset'
+gui-prop-change-block: '&eChange Block'
+gui-prop-change-block-lore:
+  - '&7'
+  - '&fCurrent: &e{value}'
+  - '&7'
+  - '&eClick to change!'
+gui-prop-change-item: '&eChange Item'
+gui-prop-change-item-lore:
+  - '&7'
+  - '&fCurrent: &e{value}'
+  - '&7'
+  - '&eClick to change!'
+gui-prop-transform: '&eTransform: &f{value}'
+gui-prop-transform-lore:
+  - '&7'
+  - '&fHow the item is displayed.'
+  - '&7NONE, THIRDPERSON, FIRSTPERSON,'
+  - '&7HEAD, GUI, GROUND, FIXED'
+  - '&7'
+  - '&eClick to change!'
+gui-prop-cmd: '&eCustom Model Data: &f{value}'
+gui-prop-cmd-lore:
+  - '&7'
+  - '&fFor custom models from Resource Pack.'
+  - '&7'
+  - '&eClick to set!'
+gui-prop-change-text: '&eChange Text'
+gui-prop-change-text-lore:
+  - '&7'
+  - '&fClick and type new text in chat.'
+  - '&7'
+  - '&eClick to change!'
+gui-prop-text-color: '&eText Color'
+gui-prop-text-color-lore:
+  - '&7'
+  - '&fChange text color and formatting.'
+  - '&7'
+  - '&eClick to open!'
+gui-prop-background: '&eBackground: &f{value}'
+gui-prop-background-lore:
+  - '&7'
+  - '&fToggle text background.'
+  - '&7'
+  - '&eClick to toggle!'
+gui-prop-see-through: '&eSee Through: &f{value}'
+gui-prop-see-through-lore:
+  - '&7'
+  - '&fWhether text is visible through blocks.'
+  - '&7'
+  - '&eClick to toggle!'
+gui-prop-line-width: '&eLine Width: &f{value}'
+gui-prop-line-width-lore:
+  - '&7'
+  - '&fMaximum line width of text.'
+  - '&7'
+  - '&eLMB: +10 | RMB: -10'
+gui-prop-text-opacity: '&eText Opacity'
+gui-prop-text-opacity-lore:
+  - '&7'
+  - '&fSet text opacity.'
+  - '&7'
+  - '&eLMB: +10 | RMB: -10'
 
-# Custom Model Data
-cmd-enter-value: "&eEnter Custom Model Data value (number):"
-cmd-set-success: "&aCustom Model Data set: &e{value}"
-cmd-invalid: "&cInvalid value! Enter a number."
+# Text display
+text-enter-message: '&eType text in chat:'
+text-set-success: '&aText set: &f{text}'
+text-background-toggle: '&7Background: {status}'
+text-see-through-toggle: '&7See through blocks: {status}'
 
-# Status
-status-enabled: "&aEnabled"
-status-disabled: "&cDisabled"
+# Custom model data
+cmd-enter-value: '&eEnter Custom Model Data value (number):'
+cmd-set-success: '&aCustom Model Data set: &e{value}'
+cmd-invalid: '&cInvalid value! Enter a number.'
+
+# Status and common values
+status-enabled: '&aEnabled'
+status-disabled: '&cDisabled'
+value-enabled: Enabled
+value-disabled: Disabled
+value-yes: 'Yes'
+value-no: 'No'
+value-auto: Auto
 
 # Errors
-error-generic: "&cAn error occurred! Check console."
-error-no-target: "&cYou're not looking at any object!"
-error-too-far: "&cObject is too far!"
-error-invalid-block: "&cInvalid block!"
-error-invalid-item: "&cInvalid item!"
-
-# Properties GUI - Common
-gui-prop-billboard: "&eBillboard: &f{value}"
-gui-prop-billboard-lore:
-  - "&7"
-  - "&fDetermines how object rotates towards player."
-  - "&7FIXED - Does not rotate"
-  - "&7VERTICAL - Rotates vertically"
-  - "&7HORIZONTAL - Rotates horizontally"
-  - "&7CENTER - Always faces the player"
-  - "&7"
-  - "&eClick to change!"
-
-gui-prop-glow: "&eGlow"
-gui-prop-glow-lore:
-  - "&7"
-  - "&fSet object glow color."
-  - "&7"
-  - "&eClick to toggle!"
-
-gui-prop-view-range: "&eView Range: &f{value}"
-gui-prop-view-range-lore:
-  - "&7"
-  - "&fHow far the object is visible."
-  - "&7"
-  - "&eLMB: +0.5 | RMB: -0.5"
-
-gui-prop-shadow: "&eShadow: &f{value}"
-gui-prop-shadow-lore:
-  - "&7"
-  - "&fShadow radius under the object."
-  - "&7"
-  - "&eLMB: +0.1 | RMB: -0.1"
-
-gui-prop-brightness: "&eBrightness"
-gui-prop-brightness-lore:
-  - "&7"
-  - "&fSet custom object brightness."
-  - "&7Current: {value}"
-  - "&7"
-  - "&eLMB: +1 | RMB: -1 | Shift: Reset"
-
-# Properties GUI - Block Display
-gui-prop-change-block: "&eChange Block"
-gui-prop-change-block-lore:
-  - "&7"
-  - "&fCurrent: &e{value}"
-  - "&7"
-  - "&eClick to change!"
-
-# Properties GUI - Item Display
-gui-prop-change-item: "&eChange Item"
-gui-prop-change-item-lore:
-  - "&7"
-  - "&fCurrent: &e{value}"
-  - "&7"
-  - "&eClick to change!"
-
-gui-prop-transform: "&eTransform: &f{value}"
-gui-prop-transform-lore:
-  - "&7"
-  - "&fHow the item is displayed."
-  - "&7NONE, THIRDPERSON, FIRSTPERSON,"
-  - "&7HEAD, GUI, GROUND, FIXED"
-  - "&7"
-  - "&eClick to change!"
-
-gui-prop-cmd: "&eCustom Model Data: &f{value}"
-gui-prop-cmd-lore:
-  - "&7"
-  - "&fFor custom models from Resource Pack."
-  - "&7"
-  - "&eClick to set!"
-
-# Properties GUI - Text Display
-gui-prop-change-text: "&eChange Text"
-gui-prop-change-text-lore:
-  - "&7"
-  - "&fClick and type new text in chat."
-  - "&7"
-  - "&eClick to change!"
-
-gui-prop-text-color: "&eText Color"
-gui-prop-text-color-lore:
-  - "&7"
-  - "&fChange text color and formatting."
-  - "&7"
-  - "&eClick to open!"
-
-gui-prop-background: "&eBackground: &f{value}"
-gui-prop-background-lore:
-  - "&7"
-  - "&fToggle text background."
-  - "&7"
-  - "&eClick to toggle!"
-
-gui-prop-see-through: "&eSee Through: &f{value}"
-gui-prop-see-through-lore:
-  - "&7"
-  - "&fWhether text is visible through blocks."
-  - "&7"
-  - "&eClick to toggle!"
-
-gui-prop-line-width: "&eLine Width: &f{value}"
-gui-prop-line-width-lore:
-  - "&7"
-  - "&fMaximum line width of text."
-  - "&7"
-  - "&eLMB: +10 | RMB: -10"
-
-gui-prop-text-opacity: "&eText Opacity"
-gui-prop-text-opacity-lore:
-  - "&7"
-  - "&fSet text opacity."
-  - "&7"
-  - "&eLMB: +10 | RMB: -10"
-
-# Common values
-value-enabled: "Enabled"
-value-disabled: "Disabled"
-value-yes: "Yes"
-value-no: "No"
-value-auto: "Auto"
+error-generic: '&cAn error occurred! Check console.'
+error-no-target: '&cYou''re not looking at any object!'
+error-too-far: '&cObject is too far!'
+error-invalid-block: '&cInvalid block!'
+error-invalid-item: '&cInvalid item!'
