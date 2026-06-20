@@ -1,5 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
+import java.util.List;
+
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import org.bukkit.Bukkit;
@@ -25,14 +27,14 @@ public class PropertiesMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 45, Lang.colorize(plugin.getLang().get("gui-edit-properties")));
-        
+        inventory = Bukkit.createInventory(
+                this,
+                45,
+                Lang.colorize(plugin.getLang().get("gui-edit-properties"))
+        );
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
-        
-        // Common properties
         addCommonProperties();
-        
-        // Type-specific properties
+
         if (display instanceof BlockDisplay blockDisplay) {
             addBlockDisplayProperties(blockDisplay);
         } else if (display instanceof ItemDisplay itemDisplay) {
@@ -40,215 +42,229 @@ public class PropertiesMenuGUI extends BaseGUI {
         } else if (display instanceof TextDisplay textDisplay) {
             addTextDisplayProperties(textDisplay);
         }
-        
-        // Back button
+
         inventory.setItem(36, getBackButton());
-        
-        // Close button
         inventory.setItem(44, getCloseButton());
     }
 
     private void addCommonProperties() {
-        // Billboard mode
-        Display.Billboard currentBillboard = display.getBillboard();
+        Display.Billboard billboard = display.getBillboard();
         inventory.setItem(10, createItem(
-            Material.PLAYER_HEAD,
-            plugin.getLang().get("gui-prop-billboard", "value", currentBillboard.name()),
-            plugin.getLang().getColoredList("gui-prop-billboard-lore")));
-        
-        // Glow color
+                Material.PLAYER_HEAD,
+                plugin.getLang().get("gui-prop-billboard", "value", billboard.name()),
+                plugin.getLang().getColoredList("gui-prop-billboard-lore")
+        ));
+
         inventory.setItem(11, createItem(
-            Material.GLOWSTONE_DUST,
-            plugin.getLang().get("gui-prop-glow"),
-            plugin.getLang().getColoredList("gui-prop-glow-lore")));
-        
-        // View range
+                Material.GLOWSTONE_DUST,
+                plugin.getLang().get("gui-prop-glow"),
+                plugin.getLang().getColoredList("gui-prop-glow-lore")
+        ));
+
         inventory.setItem(12, createItem(
-            Material.SPYGLASS,
-            plugin.getLang().get("gui-prop-view-range", "value", display.getViewRange()),
-            plugin.getLang().getColoredList("gui-prop-view-range-lore")));
-        
-        // Shadow radius
+                Material.SPYGLASS,
+                plugin.getLang().get("gui-prop-view-range", "value", display.getViewRange()),
+                plugin.getLang().getColoredList("gui-prop-view-range-lore")
+        ));
+
         inventory.setItem(13, createItem(
-            Material.BLACK_CONCRETE,
-            plugin.getLang().get("gui-prop-shadow", "value", display.getShadowRadius()),
-            plugin.getLang().getColoredList("gui-prop-shadow-lore")));
-        
-        // Brightness
-        String brightnessValue = display.getBrightness() != null ? 
-            "Block: " + display.getBrightness().getBlockLight() + 
-            ", Sky: " + display.getBrightness().getSkyLight() : plugin.getLang().get("value-auto");
+                Material.BLACK_CONCRETE,
+                plugin.getLang().get("gui-prop-shadow", "value", display.getShadowRadius()),
+                plugin.getLang().getColoredList("gui-prop-shadow-lore")
+        ));
+
+        String brightnessValue;
+        if (display.getBrightness() == null) {
+            brightnessValue = plugin.getLang().get("value-auto");
+        } else {
+            brightnessValue = display.getBrightness().getBlockLight()
+                    + "/"
+                    + display.getBrightness().getSkyLight();
+        }
+
+        List<String> brightnessLore = plugin.getLang().getColoredList("gui-prop-brightness-lore")
+                .stream()
+                .map(line -> line.replace("{value}", brightnessValue))
+                .toList();
+
         inventory.setItem(14, createItem(
-            Material.LANTERN,
-            plugin.getLang().get("gui-prop-brightness"),
-            plugin.getLang().getColoredList("gui-prop-brightness-lore").stream()
-                .map(s -> s.replace("{value}", brightnessValue))
-                .toList()));
+                Material.LANTERN,
+                plugin.getLang().get("gui-prop-brightness"),
+                brightnessLore
+        ));
     }
 
     private void addBlockDisplayProperties(BlockDisplay blockDisplay) {
-        // Change block
+        List<String> lore = plugin.getLang().getColoredList("gui-prop-change-block-lore")
+                .stream()
+                .map(line -> line.replace("{value}", blockDisplay.getBlock().getMaterial().name()))
+                .toList();
+
         inventory.setItem(20, createItem(
-            Material.BRICKS,
-            plugin.getLang().get("gui-prop-change-block"),
-            plugin.getLang().getColoredList("gui-prop-change-block-lore").stream()
-                .map(s -> s.replace("{value}", blockDisplay.getBlock().getMaterial().name()))
-                .toList()));
+                Material.BRICKS,
+                plugin.getLang().get("gui-prop-change-block"),
+                lore
+        ));
     }
 
     private void addItemDisplayProperties(ItemDisplay itemDisplay) {
-        // Change item
-        ItemStack currentItem = itemDisplay.getItemStack();
-        Material displayMat = currentItem != null ? currentItem.getType() : Material.STONE;
-        
+        ItemStack itemStack = itemDisplay.getItemStack();
+        Material material = itemStack != null ? itemStack.getType() : Material.STONE;
+
+        List<String> itemLore = plugin.getLang().getColoredList("gui-prop-change-item-lore")
+                .stream()
+                .map(line -> line.replace("{value}", material.name()))
+                .toList();
+
         inventory.setItem(20, createItem(
-            displayMat,
-            plugin.getLang().get("gui-prop-change-item"),
-            plugin.getLang().getColoredList("gui-prop-change-item-lore").stream()
-                .map(s -> s.replace("{value}", displayMat.name()))
-                .toList()));
-        
-        // Display transform
+                material,
+                plugin.getLang().get("gui-prop-change-item"),
+                itemLore
+        ));
+
         inventory.setItem(21, createItem(
-            Material.ARMOR_STAND,
-            plugin.getLang().get("gui-prop-transform", "value", itemDisplay.getItemDisplayTransform().name()),
-            plugin.getLang().getColoredList("gui-prop-transform-lore")));
-        
-        // Custom Model Data
-        int cmd = 0;
-        if (currentItem != null && currentItem.hasItemMeta()) {
-            ItemMeta meta = currentItem.getItemMeta();
-            if (meta.hasCustomModelData()) {
-                cmd = meta.getCustomModelData();
+                Material.ARMOR_STAND,
+                plugin.getLang().get(
+                        "gui-prop-transform",
+                        "value",
+                        itemDisplay.getItemDisplayTransform().name()
+                ),
+                plugin.getLang().getColoredList("gui-prop-transform-lore")
+        ));
+
+        int customModelData = 0;
+        if (itemStack != null && itemStack.hasItemMeta()) {
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta != null && meta.hasCustomModelData()) {
+                customModelData = meta.getCustomModelData();
             }
         }
-        
+
         inventory.setItem(22, createItem(
-            Material.COMMAND_BLOCK,
-            plugin.getLang().get("gui-prop-cmd", "value", cmd),
-            plugin.getLang().getColoredList("gui-prop-cmd-lore")));
+                Material.COMMAND_BLOCK,
+                plugin.getLang().get("gui-prop-cmd", "value", customModelData),
+                plugin.getLang().getColoredList("gui-prop-cmd-lore")
+        ));
     }
 
     private void addTextDisplayProperties(TextDisplay textDisplay) {
-        // Change text
         inventory.setItem(20, createItem(
-            Material.OAK_SIGN,
-            plugin.getLang().get("gui-prop-change-text"),
-            plugin.getLang().getColoredList("gui-prop-change-text-lore")));
-        
-        // Text color
+                Material.OAK_SIGN,
+                plugin.getLang().get("gui-prop-change-text"),
+                plugin.getLang().getColoredList("gui-prop-change-text-lore")
+        ));
+
         inventory.setItem(21, createItem(
-            Material.ORANGE_DYE,
-            plugin.getLang().get("gui-prop-text-color"),
-            plugin.getLang().getColoredList("gui-prop-text-color-lore")));
-        
-        // Background toggle
-        boolean hasBackground = textDisplay.getBackgroundColor() != null && 
-            textDisplay.getBackgroundColor().getAlpha() > 0;
-        String bgStatus = hasBackground ? plugin.getLang().get("value-enabled") : plugin.getLang().get("value-disabled");
-        
+                Material.ORANGE_DYE,
+                plugin.getLang().get("gui-prop-text-color"),
+                plugin.getLang().getColoredList("gui-prop-text-color-lore")
+        ));
+
+        String background = textDisplay.getBackgroundColor() == null
+                ? plugin.getLang().get("value-none")
+                : textDisplay.getBackgroundColor().asRGB() + "";
+
         inventory.setItem(22, createItem(
-            hasBackground ? Material.BLACK_STAINED_GLASS : Material.GLASS,
-            plugin.getLang().get("gui-prop-background", "value", bgStatus),
-            plugin.getLang().getColoredList("gui-prop-background-lore")));
-        
-        // See through
-        String seeStatus = textDisplay.isSeeThrough() ? plugin.getLang().get("value-yes") : plugin.getLang().get("value-no");
+                Material.BLACK_DYE,
+                plugin.getLang().get("gui-prop-background", "value", background),
+                plugin.getLang().getColoredList("gui-prop-background-lore")
+        ));
+
+        String seeThrough = textDisplay.isSeeThrough()
+                ? plugin.getLang().get("value-yes")
+                : plugin.getLang().get("value-no");
+
         inventory.setItem(23, createItem(
-            Material.GLASS_PANE,
-            plugin.getLang().get("gui-prop-see-through", "value", seeStatus),
-            plugin.getLang().getColoredList("gui-prop-see-through-lore")));
-        
-        // Line width
+                Material.GLASS_PANE,
+                plugin.getLang().get("gui-prop-see-through", "value", seeThrough),
+                plugin.getLang().getColoredList("gui-prop-see-through-lore")
+        ));
+
         inventory.setItem(24, createItem(
-            Material.PAPER,
-            plugin.getLang().get("gui-prop-line-width", "value", textDisplay.getLineWidth()),
-            plugin.getLang().getColoredList("gui-prop-line-width-lore")));
-        
-        // Text opacity
+                Material.PAPER,
+                plugin.getLang().get("gui-prop-line-width", "value", textDisplay.getLineWidth()),
+                plugin.getLang().getColoredList("gui-prop-line-width-lore")
+        ));
+
         inventory.setItem(25, createItem(
-            Material.TINTED_GLASS,
-            plugin.getLang().get("gui-prop-text-opacity"),
-            plugin.getLang().getColoredList("gui-prop-text-opacity-lore")));
+                Material.TINTED_GLASS,
+                plugin.getLang().get("gui-prop-text-opacity"),
+                plugin.getLang().getColoredList("gui-prop-text-opacity-lore")
+        ));
     }
 
     @Override
     public void handleClick(int slot, ItemStack item, ClickType clickType) {
         switch (slot) {
-            // Billboard
             case 10 -> cycleBillboard();
-            
-            // Glow
             case 11 -> toggleGlow();
-            
-            // View range
             case 12 -> adjustViewRange(clickType);
-            
-            // Shadow
             case 13 -> adjustShadow(clickType);
-            
-            // Brightness
             case 14 -> adjustBrightness(clickType);
-            
-            // Type-specific
             case 20 -> handleSlot20(clickType);
             case 21 -> handleSlot21(clickType);
             case 22 -> handleSlot22(clickType);
             case 23 -> handleSlot23(clickType);
             case 24 -> handleSlot24(clickType);
             case 25 -> handleSlot25(clickType);
-            
-            // Navigation
             case 36 -> {
                 player.closeInventory();
                 new EditMenuGUI(plugin, player, display).open();
             }
             case 44 -> player.closeInventory();
+            default -> {
+            }
         }
     }
 
     private void cycleBillboard() {
         Display.Billboard[] values = Display.Billboard.values();
-        int currentIndex = display.getBillboard().ordinal();
-        int nextIndex = (currentIndex + 1) % values.length;
-        display.setBillboard(values[nextIndex]);
-        createInventory();
+        int next = (display.getBillboard().ordinal() + 1) % values.length;
+        display.setBillboard(values[next]);
+        open();
     }
 
     private void toggleGlow() {
         display.setGlowing(!display.isGlowing());
-        createInventory();
+        open();
     }
 
     private void adjustViewRange(ClickType clickType) {
+        if (clickType.isShiftClick()) {
+            display.setViewRange(1.0F);
+            open();
+            return;
+        }
+
         float current = display.getViewRange();
-        float newValue = clickType.isRightClick() ? current - 0.5f : current + 0.5f;
-        display.setViewRange(Math.max(0.1f, Math.min(newValue, 10f)));
-        createInventory();
+        float next = clickType.isRightClick() ? current - 0.5F : current + 0.5F;
+        display.setViewRange(Math.max(0.1F, Math.min(10.0F, next)));
+        open();
     }
 
     private void adjustShadow(ClickType clickType) {
         float current = display.getShadowRadius();
-        float newValue = clickType.isRightClick() ? current - 0.1f : current + 0.1f;
-        display.setShadowRadius(Math.max(0f, Math.min(newValue, 5f)));
-        createInventory();
+        float next = clickType.isRightClick() ? current - 0.1F : current + 0.1F;
+        display.setShadowRadius(Math.max(0.0F, Math.min(5.0F, next)));
+        open();
     }
 
     private void adjustBrightness(ClickType clickType) {
         if (clickType.isShiftClick()) {
             display.setBrightness(null);
-        } else {
-            Display.Brightness current = display.getBrightness();
-            int blockLight = current != null ? current.getBlockLight() : 7;
-            int skyLight = current != null ? current.getSkyLight() : 7;
-            
-            int change = clickType.isRightClick() ? -1 : 1;
-            blockLight = Math.max(0, Math.min(15, blockLight + change));
-            skyLight = Math.max(0, Math.min(15, skyLight + change));
-            
-            display.setBrightness(new Display.Brightness(blockLight, skyLight));
+            open();
+            return;
         }
-        createInventory();
+
+        Display.Brightness brightness = display.getBrightness();
+        int block = brightness != null ? brightness.getBlockLight() : 7;
+        int sky = brightness != null ? brightness.getSkyLight() : 7;
+        int step = clickType.isRightClick() ? -1 : 1;
+
+        block = Math.max(0, Math.min(15, block + step));
+        sky = Math.max(0, Math.min(15, sky + step));
+        display.setBrightness(new Display.Brightness(block, sky));
+        open();
     }
 
     private void handleSlot20(ClickType clickType) {
@@ -280,67 +296,65 @@ public class PropertiesMenuGUI extends BaseGUI {
                     }
                 }
             }.open();
-        } else if (display instanceof TextDisplay) {
+        } else if (display instanceof TextDisplay textDisplay) {
             player.closeInventory();
-            plugin.getEditorManager().startTextInput(player, (TextDisplay) display);
+            plugin.getEditorManager().startTextInput(player, textDisplay);
         }
     }
 
     private void handleSlot21(ClickType clickType) {
         if (display instanceof ItemDisplay itemDisplay) {
+            if (clickType.isShiftClick()) {
+                itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
+                open();
+                return;
+            }
+
             ItemDisplay.ItemDisplayTransform[] values = ItemDisplay.ItemDisplayTransform.values();
-            int currentIndex = itemDisplay.getItemDisplayTransform().ordinal();
-            int nextIndex = (currentIndex + 1) % values.length;
-            itemDisplay.setItemDisplayTransform(values[nextIndex]);
-            createInventory();
+            int next = (itemDisplay.getItemDisplayTransform().ordinal() + 1) % values.length;
+            itemDisplay.setItemDisplayTransform(values[next]);
+            open();
         } else if (display instanceof TextDisplay textDisplay) {
-            // Open text color GUI
             player.closeInventory();
             new TextColorGUI(plugin, player, textDisplay).open();
         }
     }
 
     private void handleSlot22(ClickType clickType) {
-        if (display instanceof ItemDisplay) {
+        if (display instanceof ItemDisplay itemDisplay) {
             player.closeInventory();
-            plugin.getEditorManager().startCMDInput(player, (ItemDisplay) display);
+            plugin.getEditorManager().startCMDInput(player, itemDisplay);
         } else if (display instanceof TextDisplay textDisplay) {
-            // Toggle background
-            boolean hasBackground = textDisplay.getBackgroundColor() != null && 
-                textDisplay.getBackgroundColor().getAlpha() > 0;
-            
-            if (hasBackground) {
-                textDisplay.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-            } else {
-                textDisplay.setBackgroundColor(Color.fromARGB(128, 0, 0, 0));
-            }
-            createInventory();
+            boolean enabled = textDisplay.getBackgroundColor() != null
+                    && textDisplay.getBackgroundColor().getAlpha() > 0;
+            textDisplay.setBackgroundColor(enabled
+                    ? Color.fromARGB(0, 0, 0, 0)
+                    : Color.fromARGB(128, 0, 0, 0));
+            open();
         }
     }
 
     private void handleSlot23(ClickType clickType) {
         if (display instanceof TextDisplay textDisplay) {
-            // See through toggle
             textDisplay.setSeeThrough(!textDisplay.isSeeThrough());
-            createInventory();
+            open();
         }
     }
 
     private void handleSlot24(ClickType clickType) {
         if (display instanceof TextDisplay textDisplay) {
-            int current = textDisplay.getLineWidth();
-            int change = clickType.isRightClick() ? -10 : 10;
-            textDisplay.setLineWidth(Math.max(10, current + change));
-            createInventory();
+            int step = clickType.isRightClick() ? -10 : 10;
+            textDisplay.setLineWidth(Math.max(10, textDisplay.getLineWidth() + step));
+            open();
         }
     }
 
     private void handleSlot25(ClickType clickType) {
         if (display instanceof TextDisplay textDisplay) {
-            byte current = textDisplay.getTextOpacity();
-            int change = clickType.isRightClick() ? -10 : 10;
-            textDisplay.setTextOpacity((byte) Math.max(-128, Math.min(127, current + change)));
-            createInventory();
+            int step = clickType.isRightClick() ? -10 : 10;
+            int opacity = Math.max(-128, Math.min(127, textDisplay.getTextOpacity() + step));
+            textDisplay.setTextOpacity((byte) opacity);
+            open();
         }
     }
 }
