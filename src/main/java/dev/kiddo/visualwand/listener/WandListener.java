@@ -26,7 +26,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
@@ -34,6 +33,26 @@ import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+/**
+ * Coordinates all wand input used to create, edit, delete, and transform display entities.
+ *
+ * The listener owns the temporary state for active move, scale, and rotation operations.
+ * It pauses the normal particle gizmo while an operation is active, highlights the edited
+ * display with its glow outline, and restores the previous gizmo state when the operation
+ * is confirmed or cancelled.
+ *
+ * Idle gizmo controls:
+ * - Left-click cycles move, rotate, and scale modes.
+ * - Right-click starts the selected mode.
+ *
+ * Active transformation controls:
+ * - Move follows the player's aim; the mouse wheel changes depth and Q toggles surface mode.
+ * - Scale uses the mouse wheel; crouching enables the configured alternate adjustment factor.
+ * - Rotate uses the mouse wheel; Q cycles the X, Y, and Z axes.
+ * - Right-click confirms the operation.
+ * - Crouch + right-click cancels an active operation.
+ * - Crouch + right-click while idle exits gizmo mode.
+ */
 public final class WandListener implements Listener {
     /** Owning plugin and access point for managers, configuration, language, and scheduling. */
     private final VisualWand plugin;
@@ -45,8 +64,8 @@ public final class WandListener implements Listener {
     private final double maxMoveDistance;
     /** Number of blocks added or removed for one normal wheel step in move mode. */
     private final double moveScrollStep;
-    /** Multiplier applied to move depth while the configured fast modifier is held. */
-    private final double moveFastScrollMultiplier;
+    /** Multiplier applied to move depth while the player is crouching. */
+    private final double moveCrouchScrollMultiplier;
     /** Clearance applied along a hit face normal to reduce surface clipping. */
     private final double surfaceOffset;
     /** Multiplicative scale factor used for normal wheel input. */
@@ -92,8 +111,8 @@ public final class WandListener implements Listener {
                 positiveDouble("gizmo.transform-controls.move.max-distance", 512.0D));
         this.moveScrollStep = positiveDouble(
                 "gizmo.transform-controls.move.scroll-step", 1.0D);
-        this.moveFastScrollMultiplier = positiveDouble(
-                "gizmo.transform-controls.move.fast-scroll-multiplier", 5.0D);
+        this.moveCrouchScrollMultiplier = positiveDouble(
+                "gizmo.transform-controls.move.crouch-scroll-multiplier", 5.0D);
         this.surfaceOffset = nonNegativeDouble(
                 "gizmo.transform-controls.move.surface-offset", 0.02D);
 
@@ -183,9 +202,17 @@ public final class WandListener implements Listener {
             return;
         }
 
-        if (gizmo != null && rightClick && !player.isSneaking()) {
+        if (gizmo != null && rightClick) {
             event.setCancelled(true);
-            startTransformation(player, gizmo);
+
+            if (player.isSneaking()) {
+                gizmoManager.stopGizmo(player);
+                plugin.getEditorManager().removeSession(player);
+                player.sendActionBar(plugin.getLang().getColored("gizmo-disabled-actionbar"));
+                player.sendMessage(plugin.getLang().getPrefixed("gizmo-disabled"));
+            } else {
+                startTransformation(player, gizmo);
+            }
             return;
         }
 
@@ -208,13 +235,14 @@ public final class WandListener implements Listener {
 
     /**
      * Converts hotbar scrolling into transform input while preventing the selected hotbar
-     * slot from changing. Slot wrap-around is normalised before applying the delta.
+     * slot from changing. Input is intercepted only while the Architect's Wand remains in
+     * the player's main hand. Slot wrap-around is normalised before applying the delta.
      */
     @EventHandler
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         TransformSession session = sessions.get(player.getUniqueId());
-        if (session == null) {
+        if (session == null || !isHoldingWand(player)) {
             return;
         }
 
@@ -228,7 +256,7 @@ public final class WandListener implements Listener {
         int steps = Math.max(1, Math.abs(difference));
 
         if (session.mode == GizmoMode.MOVE) {
-            double multiplier = player.isSprinting() ? moveFastScrollMultiplier : 1.0D;
+            double multiplier = player.isSneaking() ? moveCrouchScrollMultiplier : 1.0D;
             session.distance = clamp(
                     session.distance + direction * moveScrollStep * multiplier * steps,
                     minMoveDistance,
@@ -236,9 +264,9 @@ public final class WandListener implements Listener {
             session.surfaceTargeting = false;
             updateMoveTarget(player, session);
         } else if (session.mode == GizmoMode.SCALE) {
-            applyScale(session, direction, steps, player.isSprinting());
+            applyScale(session, direction, steps, player.isSneaking());
         } else if (session.mode == GizmoMode.ROTATE) {
-            applyRotation(session, direction, steps, player.isSprinting());
+            applyRotation(session, direction, steps, player.isSneaking());
         }
 
         sendActionBar(player, session);
@@ -276,27 +304,6 @@ public final class WandListener implements Listener {
         }
 
         sendActionBar(player, session);
-    }
-
-    /**
-     * Cancels the active transformation when the player starts crouching.
-     *
-     * The display location, transformation, glow state, and paused gizmo are restored by the
-     * shared cancellation path.
-     *
-     * @param event crouch-state change event
-     */
-    @EventHandler
-    public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
-        if (!event.isSneaking()) {
-            return;
-        }
-
-        Player player = event.getPlayer();
-        TransformSession session = sessions.get(player.getUniqueId());
-        if (session != null) {
-            cancelTransformation(player, session, true, true);
-        }
     }
 
     /**

@@ -42,8 +42,10 @@ gizmo-axis-y: '&2Y'
 gizmo-axis-z: '&9Z'
 
 # Gizmo transformations
+gizmo-disabled: '&eGizmo mode disabled.'
+gizmo-disabled-actionbar: '&eGizmo mode disabled.'
 gizmo-transform-display-invalid: '&cThe gizmo display is no longer valid.'
-gizmo-transform-started: '&a{mode} started. &fMove your view; right-click to confirm, crouch to cancel.'
+gizmo-transform-started: '&a{mode} started. &fRight-click to confirm or crouch + right-click to cancel.'
 gizmo-transform-confirmed: '&aTransformation confirmed.'
 gizmo-transform-cancelled: '&eTransformation cancelled.'
 gizmo-transform-saved-actionbar: '&aTransformation saved.'
@@ -51,24 +53,24 @@ gizmo-transform-cancelled-actionbar: '&eTransformation cancelled.'
 gizmo-transform-wand-put-away: '&eTransformation cancelled because the wand was put away.'
 
 # Gizmo movement
-gizmo-move-started: '&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch to cancel.'
+gizmo-move-started: '&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch + right-click to cancel.'
 gizmo-move-targeting-air: '&eMovement targeting: &fAIR'
 gizmo-move-targeting-surface: '&aMovement targeting: &fSURFACE'
 gizmo-move-mode-air: '&eAIR'
 gizmo-move-mode-surface: '&aSURFACE'
 gizmo-move-mode-surface-no-hit: '&cSURFACE—NO HIT'
-gizmo-move-actionbar: '&6MOVE &8| &f{distance} blocks &8| {mode} &8| &fWheel: depth &8| &fQ: target mode &8| &aRMB: save &8| &cSneak: cancel'
+gizmo-move-actionbar: '&6MOVE &8| &f{distance} blocks &8| {mode} &8| &fWheel: depth &8| &fCrouch + wheel: alternate step &8| &fQ: target mode &8| &aRMB: save &8| &cCrouch + RMB: cancel'
 gizmo-move-confirmed: '&aMove confirmed.'
 gizmo-move-cancelled: '&eMove cancelled.'
 
 # Gizmo scaling
-gizmo-scale-started: '&aScale started. &fUse the mouse wheel to resize; sprint + wheel is fine adjustment; right-click confirms; crouch cancels.'
-gizmo-scale-actionbar: '&6SCALE &8| &fX {x}  Y {y}  Z {z} &8| &fWheel: size &8| &fSprint: fine &8| &aRMB: save &8| &cSneak: cancel'
+gizmo-scale-started: '&aScale started. &fUse the mouse wheel to resize; crouch + wheel uses the alternate increment; right-click confirms; crouch + right-click cancels.'
+gizmo-scale-actionbar: '&6SCALE &8| &fX {x}  Y {y}  Z {z} &8| &fWheel: size &8| &fCrouch + wheel: alternate step &8| &aRMB: save &8| &cCrouch + RMB: cancel'
 
 # Gizmo rotation
-gizmo-rotation-started: '&aRotate started on {axis}&a. &fUse the mouse wheel to rotate; press Q to cycle axes; sprint + wheel is fine adjustment; right-click confirms; crouch cancels.'
+gizmo-rotation-started: '&aRotate started on {axis}&a. &fUse the mouse wheel to rotate; press Q to cycle axes; crouch + wheel uses the alternate increment; right-click confirms; crouch + right-click cancels.'
 gizmo-rotation-axis-changed: '&eRotation axis: {axis}&e.'
-gizmo-rotation-actionbar: '&6ROTATE &8| {axis} axis &8| &f{angle} &8| &fWheel: rotate &8| &fQ: axis &8| &fSprint: fine &8| &aRMB: save &8| &cSneak: cancel'
+gizmo-rotation-actionbar: '&6ROTATE &8| {axis} axis &8| &f{angle} &8| &fWheel: rotate &8| &fQ: axis &8| &fCrouch + wheel: alternate step &8| &aRMB: save &8| &cCrouch + RMB: cancel'
 
 # GUI titles
 gui-main-title: '&8✦ &6VisualWand &8- &fMain Menu'
