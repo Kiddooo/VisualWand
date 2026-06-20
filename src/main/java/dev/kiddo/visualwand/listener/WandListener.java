@@ -64,8 +64,8 @@ public final class WandListener implements Listener {
     private final double maxMoveDistance;
     /** Number of blocks added or removed for one normal wheel step in move mode. */
     private final double moveScrollStep;
-    /** Multiplier applied to move depth while the player is crouching. */
-    private final double moveCrouchScrollMultiplier;
+    /** Multiplier applied to move depth while the player is crouching for fine adjustment. */
+    private final double moveFineMultiplier;
     /** Clearance applied along a hit face normal to reduce surface clipping. */
     private final double surfaceOffset;
     /** Multiplicative scale factor used for normal wheel input. */
@@ -111,8 +111,8 @@ public final class WandListener implements Listener {
                 positiveDouble("gizmo.transform-controls.move.max-distance", 512.0D));
         this.moveScrollStep = positiveDouble(
                 "gizmo.transform-controls.move.scroll-step", 1.0D);
-        this.moveCrouchScrollMultiplier = positiveDouble(
-                "gizmo.transform-controls.move.crouch-scroll-multiplier", 5.0D);
+        this.moveFineMultiplier = boundedDouble(
+                "gizmo.transform-controls.move.fine-multiplier", 0.20D, 0.01D, 1.0D);
         this.surfaceOffset = nonNegativeDouble(
                 "gizmo.transform-controls.move.surface-offset", 0.02D);
 
@@ -256,7 +256,7 @@ public final class WandListener implements Listener {
         int steps = Math.max(1, Math.abs(difference));
 
         if (session.mode == GizmoMode.MOVE) {
-            double multiplier = player.isSneaking() ? moveCrouchScrollMultiplier : 1.0D;
+            double multiplier = player.isSneaking() ? moveFineMultiplier : 1.0D;
             session.distance = clamp(
                     session.distance + direction * moveScrollStep * multiplier * steps,
                     minMoveDistance,
@@ -524,8 +524,11 @@ public final class WandListener implements Listener {
     }
 
     /**
-     * Applies a fixed world-axis rotation step to the display left quaternion. This preserves
-     * Patch 3 composition order; a later patch corrects the multiplication order.
+     * Applies a fixed local-axis rotation step to the display left quaternion.
+     *
+     * The existing rotation is multiplied by the new delta, matching the order used by the
+     * transformation GUI. The result is normalised to prevent numerical drift after repeated
+     * wheel input.
      */
     private void applyRotation(TransformSession session, int direction, int steps, boolean fine) {
         double degrees = (fine ? rotationFineStep : rotationStep) * direction * steps;
@@ -541,7 +544,8 @@ public final class WandListener implements Listener {
         }
 
         Transformation current = session.display.getTransformation();
-        Quaternionf updatedRotation = delta.mul(copyQuaternion(current.getLeftRotation()));
+        Quaternionf updatedRotation = copyQuaternion(current.getLeftRotation());
+        updatedRotation.mul(delta).normalize();
         session.display.setTransformation(new Transformation(
                 copyVector(current.getTranslation()),
                 updatedRotation,
@@ -743,6 +747,22 @@ public final class WandListener implements Listener {
     }
 
     /** Reads a finite scaling factor greater than one. */
+    /**
+     * Loads a finite double constrained to the supplied inclusive range.
+     * Invalid values are replaced with the fallback and reported to the server log.
+     */
+    private double boundedDouble(String path, double fallback, double minimum, double maximum) {
+        double value = plugin.getConfig().getDouble(path, fallback);
+        if (!Double.isFinite(value) || value < minimum || value > maximum) {
+            plugin.getLogger().warning(
+                    "Invalid value for " + path + ": " + value
+                            + ". Expected " + minimum + " to " + maximum
+                            + "; using " + fallback + ".");
+            return fallback;
+        }
+        return value;
+    }
+
     private double greaterThanOne(String path, double fallback) {
         double value = plugin.getConfig().getDouble(path, fallback);
         if (Double.isFinite(value) && value > 1.0D) {

@@ -78,7 +78,9 @@ gizmo:
       min-distance: 0.5
       max-distance: 512.0
       scroll-step: 1.0
-      crouch-scroll-multiplier: 5.0
+      # Fraction of the normal move step used while crouching.
+      # Must be greater than 0 and no greater than 1.
+      fine-multiplier: 0.20
       surface-offset: 0.02
 
     scale:
@@ -92,6 +94,7 @@ gizmo:
       step-degrees: 15.0
       fine-step-degrees: 5.0
       initial-axis: Y
+
 # Editor settings
 editor:
   # Maximum distance for ray-tracing (in blocks)
