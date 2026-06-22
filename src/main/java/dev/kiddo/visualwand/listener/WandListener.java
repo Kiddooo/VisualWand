@@ -5,6 +5,7 @@ import dev.kiddo.visualwand.gizmo.GizmoManager;
 import dev.kiddo.visualwand.gizmo.GizmoMode;
 import dev.kiddo.visualwand.gizmo.GizmoSession;
 import dev.kiddo.visualwand.gui.EditMenuGUI;
+import dev.kiddo.visualwand.gui.BaseGUI;
 import dev.kiddo.visualwand.gui.MainMenuGUI;
 import dev.kiddo.visualwand.util.RayTraceUtil;
 import java.lang.reflect.Field;
@@ -86,10 +87,18 @@ public final class WandListener implements Listener {
     private final int actionBarUpdateInterval;
     /** Whether the active display should glow while the particle gizmo is paused. */
     private final boolean glowWhileTransforming;
+    /** Whether the wand highlights the display currently under the player's crosshair. */
+    private final boolean targetHighlightEnabled;
+    /** Number of scheduler ticks between target-highlight ray traces. */
+    private final int targetHighlightUpdateInterval;
     /** Axis selected whenever a new rotation session starts. */
     private final Axis initialRotationAxis;
     /** Active transformation state keyed by player UUID. */
     private final Map<UUID, TransformSession> sessions = new HashMap<>();
+    /** Last display highlighted for each player while they are aiming with the wand. */
+    private final Map<UUID, Display> hoverTargets = new HashMap<>();
+    /** Original glow state and viewer count for displays currently highlighted by players. */
+    private final Map<Display, HighlightState> highlightStates = new HashMap<>();
     /** Optional direct view of GizmoManager sessions used to pause rendering without mode loss. */
     private final Map<UUID, GizmoSession> activeGizmoSessions;
     /** Monotonic scheduler counter used to throttle action-bar refreshes. */
@@ -139,6 +148,10 @@ public final class WandListener implements Listener {
                 "gizmo.transform-controls.actionbar-update-interval", 8);
         this.glowWhileTransforming = plugin.getConfig().getBoolean(
                 "gizmo.transform-controls.glow-while-transforming", true);
+        this.targetHighlightEnabled = plugin.getConfig().getBoolean(
+                "editor.targeting.highlight-enabled", true);
+        this.targetHighlightUpdateInterval = positiveInt(
+                "editor.targeting.update-interval", 2);
         this.activeGizmoSessions = resolveActiveGizmoSessions(plugin.getGizmoManager());
 
         plugin.getServer().getScheduler().runTaskTimer(
@@ -180,6 +193,7 @@ public final class WandListener implements Listener {
         TransformSession active = sessions.get(player.getUniqueId());
         if (active != null) {
             if (rightClick) {
+                clearHover(player);
                 event.setCancelled(true);
                 if (player.isSneaking()) {
                     cancelTransformation(player, active, true, true);
@@ -197,6 +211,7 @@ public final class WandListener implements Listener {
 
         if (gizmo != null && leftClick) {
             event.setCancelled(true);
+            clearHover(player);
             gizmoManager.handleClick(player);
             plugin.getEditorManager().removeSession(player);
             return;
@@ -204,6 +219,7 @@ public final class WandListener implements Listener {
 
         if (gizmo != null && rightClick) {
             event.setCancelled(true);
+            clearHover(player);
 
             if (player.isSneaking()) {
                 gizmoManager.stopGizmo(player);
@@ -218,6 +234,7 @@ public final class WandListener implements Listener {
 
         if (rightClick) {
             event.setCancelled(true);
+            clearHover(player);
 
             if (player.isSneaking()) {
                 handleDeleteDisplay(player);
@@ -320,6 +337,7 @@ public final class WandListener implements Listener {
         if (session != null) {
             cancelTransformation(player, session, false, false);
         }
+        clearHover(player);
         plugin.getEditorManager().removeSession(player);
         plugin.getGizmoManager().stopGizmo(player);
     }
@@ -341,6 +359,7 @@ public final class WandListener implements Listener {
             return;
         }
 
+        clearHover(player);
         plugin.getEditorManager().removeSession(player);
         GizmoSession pausedGizmo = pauseGizmo(player, gizmo);
         TransformSession session = new TransformSession(
@@ -428,6 +447,12 @@ public final class WandListener implements Listener {
 
             if (previewTicks % actionBarUpdateInterval == 0L) {
                 sendActionBar(player, session);
+            }
+        }
+
+        if (targetHighlightEnabled && previewTicks % targetHighlightUpdateInterval == 0L) {
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                updateHoverTarget(player);
             }
         }
     }
@@ -784,6 +809,138 @@ public final class WandListener implements Listener {
         return fallback;
     }
 
+
+    // -------------------------------------------------------------------------
+    // Target highlighting
+    // -------------------------------------------------------------------------
+
+    /**
+     * Updates the temporary glow outline for the display under the player's crosshair.
+     *
+     * Highlighting is intentionally disabled while the player is transforming a display,
+     * using an open VisualWand GUI, or working with the particle gizmo. Those states have
+     * their own feedback and should not fight with the normal targeting indicator.
+     *
+     * @param player player whose crosshair target should be checked
+     */
+    private void updateHoverTarget(Player player) {
+        if (!player.isOnline()
+                || !isHoldingWand(player)
+                || !player.hasPermission("visualwand.use")
+                || sessions.containsKey(player.getUniqueId())
+                || plugin.getGizmoManager().getSession(player) != null
+                || player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGUI) {
+            clearHover(player);
+            return;
+        }
+
+        Display target = RayTraceUtil.rayTraceDisplay(player, selectionDistance);
+        setHoverTarget(player, target);
+
+        if (target != null && previewTicks % actionBarUpdateInterval == 0L) {
+            double distance = player.getEyeLocation().distance(target.getLocation());
+            player.sendActionBar(describeDisplay(target, distance));
+        }
+    }
+
+    /**
+     * Changes the highlighted display for a player, restoring the previous display's glow
+     * state when no other player is still targeting it.
+     *
+     * @param player player whose target changed
+     * @param target new display target, or null to clear highlighting
+     */
+    private void setHoverTarget(Player player, Display target) {
+        UUID playerId = player.getUniqueId();
+        Display previous = hoverTargets.get(playerId);
+        if (previous != null && previous.equals(target)) {
+            return;
+        }
+
+        clearHover(player);
+
+        if (target == null || !target.isValid()) {
+            return;
+        }
+
+        HighlightState state = highlightStates.get(target);
+        if (state == null) {
+            state = new HighlightState(target.isGlowing());
+            highlightStates.put(target, state);
+        } else {
+            state.viewers++;
+        }
+
+        target.setGlowing(true);
+        hoverTargets.put(playerId, target);
+    }
+
+    /**
+     * Removes the player's temporary target highlight and restores the display's original
+     * glow state when this was the last player highlighting it.
+     *
+     * @param player player whose target highlight should be cleared
+     */
+    private void clearHover(Player player) {
+        Display previous = hoverTargets.remove(player.getUniqueId());
+        if (previous == null) {
+            return;
+        }
+
+        HighlightState state = highlightStates.get(previous);
+        if (state == null) {
+            return;
+        }
+
+        state.viewers--;
+        if (state.viewers <= 0) {
+            highlightStates.remove(previous);
+            if (previous.isValid()) {
+                previous.setGlowing(state.originalGlowing);
+            }
+        }
+    }
+
+    /**
+     * Builds the action-bar text shown for the currently targeted display.
+     *
+     * @param display display currently under the player's crosshair
+     * @param distance distance from the player's eye to the display entity
+     * @return localized and colourized target description
+     */
+    private String describeDisplay(Display display, double distance) {
+        String formattedDistance = format(distance);
+        if (display instanceof BlockDisplay blockDisplay) {
+            return plugin.getLang().getColored(
+                    "target-display-block",
+                    "material",
+                    blockDisplay.getBlock().getMaterial().name(),
+                    "distance",
+                    formattedDistance);
+        }
+
+        if (display instanceof ItemDisplay itemDisplay) {
+            return plugin.getLang().getColored(
+                    "target-display-item",
+                    "material",
+                    itemDisplay.getItemStack().getType().name(),
+                    "distance",
+                    formattedDistance);
+        }
+
+        if (display instanceof TextDisplay) {
+            return plugin.getLang().getColored(
+                    "target-display-text",
+                    "distance",
+                    formattedDistance);
+        }
+
+        return plugin.getLang().getColored(
+                "target-display-generic",
+                "distance",
+                formattedDistance);
+    }
+
     /**
      * Checks the player's main hand using the plugin's canonical wand matcher.
      *
@@ -991,6 +1148,24 @@ public final class WandListener implements Listener {
             this.originalTransformation = originalTransformation;
             this.originalGlowing = originalGlowing;
             this.pausedGizmo = pausedGizmo;
+        }
+    }
+
+    /**
+     * Stores temporary glow state for a display being targeted by one or more players.
+     *
+     * The original glow value must be restored when the final viewer stops targeting
+     * the display. The viewer count prevents one player from clearing another
+     * player's temporary highlight.
+     */
+    private static final class HighlightState {
+
+        private final boolean originalGlowing;
+        private int viewers;
+
+        private HighlightState(boolean originalGlowing) {
+            this.originalGlowing = originalGlowing;
+            this.viewers = 1;
         }
     }
 }

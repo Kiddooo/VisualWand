@@ -306,3 +306,9 @@ error-no-target: '&cYou''re not looking at any object!'
 error-too-far: '&cObject is too far!'
 error-invalid-block: '&cInvalid block!'
 error-invalid-item: '&cInvalid item!'
+
+# Targeting
+target-display-block: "&fBlock display: &e{material} &8| &f{distance} blocks"
+target-display-item: "&fItem display: &e{material} &8| &f{distance} blocks"
+target-display-text: "&fText display &8| &f{distance} blocks"
+target-display-generic: "&fDisplay &8| &f{distance} blocks"

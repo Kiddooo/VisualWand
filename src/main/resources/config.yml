@@ -103,6 +103,9 @@ editor:
   move-sensitivity: 0.1
   rotate-sensitivity: 5.0
   scale-sensitivity: 0.05
+  targeting:
+    highlight-enabled: true
+    update-interval: 2
 
 # Animation settings
 animations:
