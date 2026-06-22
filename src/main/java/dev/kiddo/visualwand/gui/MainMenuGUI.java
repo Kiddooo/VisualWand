@@ -68,21 +68,29 @@ public class MainMenuGUI extends BaseGUI {
     }
 
     private void createTextDisplay() {
-        Location location = RayTraceUtil.getTargetLocation(player, 
-            plugin.getConfig().getDouble("editor.max-distance", 50));
-        
-        player.getWorld().spawn(location, TextDisplay.class, textDisplay -> {
+        Location targetLocation = RayTraceUtil.getTargetLocation(
+                player,
+                plugin.getConfig().getDouble("editor.max-distance", 50)
+        );
+
+        Location spawnLocation = targetLocation.getBlock()
+                .getLocation()
+                .add(0.5D, 0.0D, 0.5D);
+
+        player.getWorld().spawn(spawnLocation, TextDisplay.class, textDisplay -> {
             textDisplay.setText(plugin.getLang().get("text-display-default"));
             textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
-            
-            // Register in storage
+
             plugin.getDisplayStorage().addDisplay(textDisplay);
         });
-        
-        player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Text Display"));
-        
-        // Open text input
+
+        player.sendMessage(plugin.getLang().getPrefixed(
+                "display-created",
+                "type",
+                "Text Display"
+        ));
+
         plugin.getEditorManager().startTextInput(player, null);
     }
 }

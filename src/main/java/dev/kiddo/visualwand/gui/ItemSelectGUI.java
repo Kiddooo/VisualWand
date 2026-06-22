@@ -4,6 +4,7 @@ import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
@@ -107,17 +108,26 @@ public class ItemSelectGUI extends BaseGUI {
     }
 
     private void createItemDisplay(ItemStack itemStack) {
-        Location location = RayTraceUtil.getTargetLocation(player,
-            plugin.getConfig().getDouble("editor.max-distance", 50));
-        
-        player.getWorld().spawn(location, ItemDisplay.class, itemDisplay -> {
+        Location targetLocation = RayTraceUtil.getTargetLocation(
+                player,
+                plugin.getConfig().getDouble("editor.max-distance", 50)
+        );
+
+        Location spawnLocation = targetLocation.getBlock()
+                .getLocation()
+                .add(0.5D, 0.125D, 0.5D);
+
+        player.getWorld().spawn(spawnLocation, ItemDisplay.class, itemDisplay -> {
             itemDisplay.setItemStack(itemStack);
             itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
-            
-            // Register in storage
+
             plugin.getDisplayStorage().addDisplay(itemDisplay);
         });
-        
-        player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Item Display"));
+
+        player.sendMessage(plugin.getLang().getPrefixed(
+                "display-created",
+                "type",
+                "Item Display"
+        ));
     }
 }
