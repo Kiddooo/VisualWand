@@ -119,6 +119,8 @@ public class ItemSelectGUI extends BaseGUI {
 
         player.getWorld().spawn(spawnLocation, ItemDisplay.class, itemDisplay -> {
             itemDisplay.setItemStack(itemStack);
+            itemDisplay.setDisplayHeight(0.5F);
+            itemDisplay.setDisplayWidth(0.5F);
             itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
 
             plugin.getDisplayStorage().addDisplay(itemDisplay);

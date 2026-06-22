@@ -81,7 +81,7 @@ public class TextColorGUI extends BaseGUI {
             "&7", isPl ? "&7Przełącz pogrubienie" : "&7Toggle bold"));
         inventory.setItem(32, createItem(Material.FEATHER, italicText,
             "&7", isPl ? "&7Przełącz kursywę" : "&7Toggle italic"));
-        inventory.setItem(33, createItem(Material.CHAIN, underlineText,
+        inventory.setItem(33, createItem(Material.IRON_CHAIN, underlineText,
             "&7", isPl ? "&7Przełącz podkreślenie" : "&7Toggle underline"));
         inventory.setItem(34, createItem(Material.BARRIER, strikeText,
             "&7", isPl ? "&7Przełącz przekreślenie" : "&7Toggle strikethrough"));

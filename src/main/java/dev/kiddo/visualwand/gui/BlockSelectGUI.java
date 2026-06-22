@@ -8,6 +8,7 @@ import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
@@ -98,16 +99,20 @@ public class BlockSelectGUI extends BaseGUI {
     }
 
     private void createBlockDisplay(Material material) {
-        var targetLocation = RayTraceUtil.getTargetLocation(
+        Location targetLocation = RayTraceUtil.getTargetLocation(
                 player,
-                plugin.getConfig().getDouble("editor.max-distance", 50.0D)
+                plugin.getConfig().getDouble("editor.max-distance", 50)
         );
 
-        player.getWorld().spawn(targetLocation.getBlock().getLocation(), BlockDisplay.class, blockDisplay -> {
-            blockDisplay.setBlock(material.createBlockData());
+        Location spawnLocation = targetLocation.getBlock().getLocation();
+        BlockData blockData = material.createBlockData();
+
+        player.getWorld().spawn(spawnLocation, BlockDisplay.class, blockDisplay -> {
+            blockDisplay.setBlock(blockData);
+            blockDisplay.setDisplayWidth(1.0F);
+            blockDisplay.setDisplayHeight(1.0F);
+
             plugin.getDisplayStorage().addDisplay(blockDisplay);
         });
-
-        player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Block Display"));
     }
 }

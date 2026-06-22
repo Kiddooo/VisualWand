@@ -13,13 +13,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -28,6 +31,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -241,8 +245,10 @@ public final class WandListener implements Listener {
                 return;
             }
 
-            Display display = RayTraceUtil.rayTraceDisplay(player, selectionDistance);
+            Display display = getTargetedDisplay(player);
             if (display != null) {
+                event.setCancelled(true);
+                clearHover(player);
                 openEditMenu(player, display);
             } else {
                 openCreateMenu(player);
@@ -834,7 +840,7 @@ public final class WandListener implements Listener {
             return;
         }
 
-        Display target = RayTraceUtil.rayTraceDisplay(player, selectionDistance);
+        Display target = getTargetedDisplay(player);
         setHoverTarget(player, target);
 
         if (target != null && previewTicks % actionBarUpdateInterval == 0L) {
@@ -899,6 +905,309 @@ public final class WandListener implements Listener {
                 previous.setGlowing(state.originalGlowing);
             }
         }
+    }
+
+    /**
+     * Finds the nearest display whose selection shape is directly intersected by
+     * the player's crosshair ray.
+     *
+     * Block displays are tested against the vanilla block state's voxel shape,
+     * which handles vanilla non-cube blocks such as copper golem statues. Item
+     * and text displays keep simple fallback boxes because they do not have a
+     * server-side vanilla block shape.
+     *
+     * This method is the single targeting path for hover, edit, and delete. Do
+     * not use RayTraceUtil.rayTraceDisplay for those actions, because that
+     * utility is intentionally loose and can select nearby displays that are
+     * not actually under the crosshair.
+     *
+     * @param player player whose view ray should be tested
+     * @return nearest intersected display, or null when the ray misses all displays
+     */
+    private Display getTargetedDisplay(Player player) {
+        Location eye = player.getEyeLocation();
+        Vector rayStart = eye.toVector();
+        Vector rayDirection = normalizedDirection(eye);
+
+        Display bestDisplay = null;
+        double bestDistance = selectionDistance;
+
+        World world = player.getWorld();
+        for (Entity entity : world.getNearbyEntities(
+                eye,
+                selectionDistance,
+                selectionDistance,
+                selectionDistance,
+                candidate -> candidate instanceof Display)) {
+            Display display = (Display) entity;
+            if (!display.isValid()) {
+                continue;
+            }
+
+            double hitDistance = getDisplayHitDistance(
+                    display,
+                    rayStart,
+                    rayDirection,
+                    selectionDistance);
+
+            if (hitDistance >= 0.0D && hitDistance < bestDistance) {
+                bestDistance = hitDistance;
+                bestDisplay = display;
+            }
+        }
+
+        return bestDisplay;
+    }
+
+    /**
+     * Returns the world-space distance from the ray start to the first
+     * intersection with the display's selection shape.
+     *
+     * A negative return value means the ray missed the display.
+     */
+    private double getDisplayHitDistance(
+            Display display,
+            Vector rayStart,
+            Vector rayDirection,
+            double maxDistance) {
+        if (display instanceof BlockDisplay blockDisplay) {
+            double blockDistance = getBlockDisplayHitDistance(
+                    blockDisplay,
+                    rayStart,
+                    rayDirection,
+                    maxDistance);
+
+            if (blockDistance >= 0.0D) {
+                return blockDistance;
+            }
+
+            // Some blocks may have an empty or unavailable outline shape. Fall
+            // back to a conservative one-block box so they remain selectable.
+        }
+
+        BoundingBox selectionBox = getSimpleDisplaySelectionBox(display);
+        RayTraceResult hit = selectionBox.rayTrace(rayStart, rayDirection, maxDistance);
+        if (hit == null || hit.getHitPosition() == null) {
+            return -1.0D;
+        }
+
+        return hit.getHitPosition().distance(rayStart);
+    }
+
+    /**
+     * Ray-tests a block display against the vanilla voxel shape of its displayed
+     * block state.
+     *
+     * The player ray is transformed into the display's local coordinate space,
+     * each vanilla shape AABB is tested locally, and the nearest hit is converted
+     * back to world distance. Testing in local space avoids the overly-large
+     * world AABBs created by rotated or non-cube block shapes.
+     */
+    private double getBlockDisplayHitDistance(
+            BlockDisplay display,
+            Vector rayStart,
+            Vector rayDirection,
+            double maxDistance) {
+        VoxelShape shape = getBlockDisplayVoxelShape(display);
+        if (shape == null || shape.isEmpty()) {
+            return -1.0D;
+        }
+
+        Location origin = display.getLocation();
+        Transformation transformation = display.getTransformation();
+
+        Vector rayEnd = rayStart.clone().add(rayDirection.clone().multiply(maxDistance));
+        Vector localStart = worldToDisplayLocal(origin, transformation, rayStart);
+        Vector localEnd = worldToDisplayLocal(origin, transformation, rayEnd);
+        Vector localDirection = localEnd.clone().subtract(localStart);
+
+        double localMaxDistance = localDirection.length();
+        if (localMaxDistance <= 1.0E-8D) {
+            return -1.0D;
+        }
+
+        localDirection.normalize();
+
+        double bestDistance = -1.0D;
+
+        for (AABB localBox : shape.toAabbs()) {
+            BoundingBox localSelectionBox = new BoundingBox(
+                    localBox.minX,
+                    localBox.minY,
+                    localBox.minZ,
+                    localBox.maxX,
+                    localBox.maxY,
+                    localBox.maxZ
+            ).expand(0.002D);
+
+            RayTraceResult localHit = localSelectionBox.rayTrace(
+                    localStart,
+                    localDirection,
+                    localMaxDistance);
+
+            if (localHit == null || localHit.getHitPosition() == null) {
+                continue;
+            }
+
+            Vector worldHit = displayLocalToWorld(
+                    origin,
+                    transformation,
+                    localHit.getHitPosition());
+            double worldDistance = worldHit.distance(rayStart);
+
+            if (worldDistance > maxDistance) {
+                continue;
+            }
+
+            if (bestDistance < 0.0D || worldDistance < bestDistance) {
+                bestDistance = worldDistance;
+            }
+        }
+
+        return bestDistance;
+    }
+
+    /**
+     * Gets the vanilla outline voxel shape for the block rendered by a block
+     * display. This uses Paper/CraftBukkit internals, so the plugin must be
+     * built with paperweight-userdev rather than only paper-api.
+     */
+    private VoxelShape getBlockDisplayVoxelShape(BlockDisplay display) {
+        if (!(display.getBlock() instanceof CraftBlockData craftBlockData)) {
+            return null;
+        }
+
+        BlockState blockState = craftBlockData.getState();
+        CraftWorld craftWorld = (CraftWorld) display.getWorld();
+        Location location = display.getLocation();
+        BlockPos blockPos = BlockPos.containing(
+                location.getX(),
+                location.getY(),
+                location.getZ());
+
+        return blockState.getShape(craftWorld.getHandle(), blockPos);
+    }
+
+    /**
+     * Converts a world-space point into a block display's local block-model
+     * coordinates by applying the inverse of the display transformation.
+     */
+    private Vector worldToDisplayLocal(
+            Location origin,
+            Transformation transformation,
+            Vector worldPoint) {
+        Vector3f point = new Vector3f(
+                (float) (worldPoint.getX() - origin.getX()),
+                (float) (worldPoint.getY() - origin.getY()),
+                (float) (worldPoint.getZ() - origin.getZ()));
+
+        Vector3f translation = transformation.getTranslation();
+        point.sub(translation);
+
+        Quaternionf inverseLeftRotation = new Quaternionf(
+                transformation.getLeftRotation()).invert();
+        inverseLeftRotation.transform(point);
+
+        Vector3f scale = transformation.getScale();
+        point.set(
+                divideByScale(point.x, scale.x),
+                divideByScale(point.y, scale.y),
+                divideByScale(point.z, scale.z));
+
+        Quaternionf inverseRightRotation = new Quaternionf(
+                transformation.getRightRotation()).invert();
+        inverseRightRotation.transform(point);
+
+        return new Vector(point.x, point.y, point.z);
+    }
+
+    /**
+     * Converts a point from block-display local coordinates back into world
+     * coordinates by applying the display transformation.
+     */
+    private Vector displayLocalToWorld(
+            Location origin,
+            Transformation transformation,
+            Vector localPoint) {
+        Vector3f point = new Vector3f(
+                (float) localPoint.getX(),
+                (float) localPoint.getY(),
+                (float) localPoint.getZ());
+
+        Quaternionf rightRotation = new Quaternionf(transformation.getRightRotation());
+        Quaternionf leftRotation = new Quaternionf(transformation.getLeftRotation());
+        Vector3f scale = transformation.getScale();
+        Vector3f translation = transformation.getTranslation();
+
+        rightRotation.transform(point);
+        point.mul(scale);
+        leftRotation.transform(point);
+        point.add(translation);
+
+        return new Vector(
+                origin.getX() + point.x,
+                origin.getY() + point.y,
+                origin.getZ() + point.z);
+    }
+
+    /**
+     * Prevents division by zero when a display has been scaled to, or near, zero
+     * on one axis. A near-zero axis cannot be targeted meaningfully, so using a
+     * tiny divisor is safer than throwing during hover updates.
+     */
+    private float divideByScale(float value, float scale) {
+        if (Math.abs(scale) <= 1.0E-6F) {
+            return value / (scale < 0.0F ? -1.0E-6F : 1.0E-6F);
+        }
+
+        return value / scale;
+    }
+
+    /**
+     * Fallback selection boxes for displays that do not have vanilla voxel
+     * shapes. These are intentionally small so item and text displays do not
+     * steal focus unless the crosshair is actually near the entity.
+     */
+    private BoundingBox getSimpleDisplaySelectionBox(Display display) {
+        Location location = display.getLocation();
+
+        if (display instanceof BlockDisplay) {
+            return new BoundingBox(
+                    location.getX(),
+                    location.getY(),
+                    location.getZ(),
+                    location.getX() + 1.0D,
+                    location.getY() + 1.0D,
+                    location.getZ() + 1.0D);
+        }
+
+        if (display instanceof ItemDisplay) {
+            return new BoundingBox(
+                    location.getX() - 0.5D,
+                    location.getY() - 0.25D,
+                    location.getZ() - 0.5D,
+                    location.getX() + 0.5D,
+                    location.getY() + 0.75D,
+                    location.getZ() + 0.5D);
+        }
+
+        if (display instanceof TextDisplay) {
+            return new BoundingBox(
+                    location.getX() - 0.75D,
+                    location.getY() - 0.25D,
+                    location.getZ() - 0.1D,
+                    location.getX() + 0.75D,
+                    location.getY() + 0.5D,
+                    location.getZ() + 0.1D);
+        }
+
+        return new BoundingBox(
+                location.getX() - 0.5D,
+                location.getY() - 0.5D,
+                location.getZ() - 0.5D,
+                location.getX() + 0.5D,
+                location.getY() + 0.5D,
+                location.getZ() + 0.5D);
     }
 
     /**
@@ -974,7 +1283,7 @@ public final class WandListener implements Listener {
 
     /** Deletes the display currently selected by the existing ray-trace utility. */
     private void handleDeleteDisplay(Player player) {
-        Display display = RayTraceUtil.rayTraceDisplay(player, selectionDistance);
+        Display display = getTargetedDisplay(player);
         if (display != null) {
             plugin.getAnimationManager().stopAnimation(display);
             plugin.getDisplayStorage().removeDisplay(display);
