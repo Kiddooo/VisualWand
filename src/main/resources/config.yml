@@ -106,6 +106,9 @@ editor:
   targeting:
     highlight-enabled: true
     update-interval: 2
+  delete-confirmation:
+    # How long the second crouch-right-click confirmation remains valid, in seconds.
+    timeout-seconds: 5.0
 
 # Animation settings
 animations:

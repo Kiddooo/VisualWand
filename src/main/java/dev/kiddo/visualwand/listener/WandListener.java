@@ -95,6 +95,8 @@ public final class WandListener implements Listener {
     private final boolean targetHighlightEnabled;
     /** Number of scheduler ticks between target-highlight ray traces. */
     private final int targetHighlightUpdateInterval;
+    /** How long a pending wand deletion confirmation remains valid, in milliseconds. */
+    private final long deleteConfirmationTimeoutMillis;
     /** Axis selected whenever a new rotation session starts. */
     private final Axis initialRotationAxis;
     /** Active transformation state keyed by player UUID. */
@@ -103,6 +105,8 @@ public final class WandListener implements Listener {
     private final Map<UUID, Display> hoverTargets = new HashMap<>();
     /** Original glow state and viewer count for displays currently highlighted by players. */
     private final Map<Display, HighlightState> highlightStates = new HashMap<>();
+    /** Pending crouch-right-click delete confirmations keyed by player UUID. */
+    private final Map<UUID, DeleteConfirmation> deleteConfirmations = new HashMap<>();
     /** Optional direct view of GizmoManager sessions used to pause rendering without mode loss. */
     private final Map<UUID, GizmoSession> activeGizmoSessions;
     /** Monotonic scheduler counter used to throttle action-bar refreshes. */
@@ -156,6 +160,10 @@ public final class WandListener implements Listener {
                 "editor.targeting.highlight-enabled", true);
         this.targetHighlightUpdateInterval = positiveInt(
                 "editor.targeting.update-interval", 2);
+        this.deleteConfirmationTimeoutMillis = Math.max(
+                1_000L,
+                Math.round(positiveDouble(
+                        "editor.delete-confirmation.timeout-seconds", 5.0D) * 1_000.0D));
         this.activeGizmoSessions = resolveActiveGizmoSessions(plugin.getGizmoManager());
 
         plugin.getServer().getScheduler().runTaskTimer(
@@ -216,6 +224,7 @@ public final class WandListener implements Listener {
         if (gizmo != null && leftClick) {
             event.setCancelled(true);
             clearHover(player);
+            clearDeleteConfirmation(player);
             gizmoManager.handleClick(player);
             plugin.getEditorManager().removeSession(player);
             return;
@@ -224,6 +233,7 @@ public final class WandListener implements Listener {
         if (gizmo != null && rightClick) {
             event.setCancelled(true);
             clearHover(player);
+            clearDeleteConfirmation(player);
 
             if (player.isSneaking()) {
                 gizmoManager.stopGizmo(player);
@@ -245,6 +255,7 @@ public final class WandListener implements Listener {
                 return;
             }
 
+            clearDeleteConfirmation(player);
             Display display = getTargetedDisplay(player);
             if (display != null) {
                 event.setCancelled(true);
@@ -344,6 +355,7 @@ public final class WandListener implements Listener {
             cancelTransformation(player, session, false, false);
         }
         clearHover(player);
+        clearDeleteConfirmation(player);
         plugin.getEditorManager().removeSession(player);
         plugin.getGizmoManager().stopGizmo(player);
     }
@@ -366,6 +378,7 @@ public final class WandListener implements Listener {
         }
 
         clearHover(player);
+        clearDeleteConfirmation(player);
         plugin.getEditorManager().removeSession(player);
         GizmoSession pausedGizmo = pauseGizmo(player, gizmo);
         TransformSession session = new TransformSession(
@@ -461,6 +474,8 @@ public final class WandListener implements Listener {
                 updateHoverTarget(player);
             }
         }
+
+        pruneDeleteConfirmations();
     }
 
     /**
@@ -1281,17 +1296,115 @@ public final class WandListener implements Listener {
         new EditMenuGUI(plugin, player, display).open();
     }
 
-    /** Deletes the display currently selected by the existing ray-trace utility. */
+    /**
+     * Handles crouch-right-click deletion through a two-step confirmation.
+     *
+     * The first crouch-right-click arms deletion for the currently targeted display.
+     * Repeating the same input on the same target before the timeout expires performs
+     * the actual deletion. Targeting a different display replaces the pending target
+     * instead of deleting either display.
+     *
+     * @param player player requesting deletion
+     */
     private void handleDeleteDisplay(Player player) {
         Display display = getTargetedDisplay(player);
-        if (display != null) {
-            plugin.getAnimationManager().stopAnimation(display);
-            plugin.getDisplayStorage().removeDisplay(display);
-            display.remove();
-            player.sendMessage(plugin.getLang().getPrefixed("display-deleted"));
-        } else {
+        if (display == null) {
+            clearDeleteConfirmation(player);
             player.sendMessage(plugin.getLang().getPrefixed("display-not-found"));
+            return;
         }
+
+        UUID playerId = player.getUniqueId();
+        DeleteConfirmation pending = deleteConfirmations.get(playerId);
+        long now = System.currentTimeMillis();
+
+        if (pending != null) {
+            if (!pending.display.isValid() || pending.expiresAtMillis <= now) {
+                deleteConfirmations.remove(playerId);
+                player.sendMessage(plugin.getLang().getPrefixed("display-delete-confirm-expired"));
+            } else if (pending.displayId.equals(display.getUniqueId())) {
+                deleteConfirmations.remove(playerId);
+                deleteDisplay(player, display);
+                return;
+            } else {
+                armDeleteConfirmation(player, display, true);
+                return;
+            }
+        }
+
+        armDeleteConfirmation(player, display, false);
+    }
+
+    /**
+     * Stores the display that will be deleted if the player repeats the delete input before
+     * the configured timeout expires.
+     *
+     * @param player player arming deletion
+     * @param display display that will be deleted on confirmation
+     * @param targetChanged whether an existing pending target was replaced
+     */
+    private void armDeleteConfirmation(Player player, Display display, boolean targetChanged) {
+        long expiresAtMillis = System.currentTimeMillis() + deleteConfirmationTimeoutMillis;
+        deleteConfirmations.put(
+                player.getUniqueId(),
+                new DeleteConfirmation(display, expiresAtMillis));
+
+        String seconds = formatSeconds(deleteConfirmationTimeoutMillis);
+        String type = getDisplayTypeName(display);
+        player.sendMessage(plugin.getLang().getPrefixed(
+                targetChanged
+                        ? "display-delete-confirm-changed"
+                        : "display-delete-confirm-arm",
+                "type",
+                type,
+                "seconds",
+                seconds));
+        player.sendActionBar(plugin.getLang().getColored(
+                "display-delete-confirm-actionbar",
+                "type",
+                type,
+                "seconds",
+                seconds));
+    }
+
+    /**
+     * Performs the confirmed deletion and removes all transient visual state first so the
+     * display is not left in a temporary glow state while being removed.
+     *
+     * @param player player confirming deletion
+     * @param display display to delete
+     */
+    private void deleteDisplay(Player player, Display display) {
+        clearHover(player);
+        clearDeleteConfirmation(player);
+
+        plugin.getAnimationManager().stopAnimation(display);
+        plugin.getDisplayStorage().removeDisplay(display);
+        display.remove();
+
+        player.sendMessage(plugin.getLang().getPrefixed(
+                "display-delete-confirmed",
+                "type",
+                getDisplayTypeName(display)));
+    }
+
+    /** Clears one player's pending delete confirmation without sending feedback. */
+    private void clearDeleteConfirmation(Player player) {
+        deleteConfirmations.remove(player.getUniqueId());
+    }
+
+    /** Removes expired or invalid delete confirmations during the normal wand update tick. */
+    private void pruneDeleteConfirmations() {
+        long now = System.currentTimeMillis();
+        deleteConfirmations.entrySet().removeIf(entry -> {
+            Player player = plugin.getServer().getPlayer(entry.getKey());
+            DeleteConfirmation pending = entry.getValue();
+            return player == null
+                    || !player.isOnline()
+                    || !isHoldingWand(player)
+                    || !pending.display.isValid()
+                    || pending.expiresAtMillis <= now;
+        });
     }
 
     /** Clamps scale magnitude without discarding a mirrored axis' negative sign. */
@@ -1388,6 +1501,15 @@ public final class WandListener implements Listener {
         return String.format(java.util.Locale.ROOT, "%+.1f°", normalized);
     }
 
+    /** Formats a millisecond duration as compact seconds for delete confirmation messages. */
+    private static String formatSeconds(long millis) {
+        double seconds = millis / 1_000.0D;
+        if (Math.abs(seconds - Math.rint(seconds)) < 1.0E-9D) {
+            return String.valueOf((long) Math.rint(seconds));
+        }
+        return format(seconds);
+    }
+
     /**
      * Converts the Bukkit display subtype into the user-facing label used by the editor.
      *
@@ -1457,6 +1579,25 @@ public final class WandListener implements Listener {
             this.originalTransformation = originalTransformation;
             this.originalGlowing = originalGlowing;
             this.pausedGizmo = pausedGizmo;
+        }
+    }
+
+    /**
+     * Stores the display selected by the first crouch-right-click delete input.
+     *
+     * The same player must target this same valid display again before the expiry time
+     * for deletion to proceed.
+     */
+    private static final class DeleteConfirmation {
+
+        private final Display display;
+        private final UUID displayId;
+        private final long expiresAtMillis;
+
+        private DeleteConfirmation(Display display, long expiresAtMillis) {
+            this.display = display;
+            this.displayId = display.getUniqueId();
+            this.expiresAtMillis = expiresAtMillis;
         }
     }
 

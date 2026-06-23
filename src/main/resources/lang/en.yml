@@ -22,6 +22,11 @@ wand-already-has: '&eYou already have the Architect''s Wand!'
 # Displays
 display-created: '&aCreated new object: &e{type}'
 display-deleted: '&cDeleted display object!'
+display-delete-confirm-arm: '&cDelete {type}? &fCrouch + right-click again within &e{seconds}s &fto confirm.'
+display-delete-confirm-changed: '&eDelete target changed. &fCrouch + right-click again within &e{seconds}s &fto confirm deleting {type}.'
+display-delete-confirm-expired: '&eDelete confirmation expired.'
+display-delete-confirmed: '&cDeleted {type}.'
+display-delete-confirm-actionbar: '&cDelete armed &8| &f{type} &8| &fCrouch + right-click again within &e{seconds}s'
 text-display-default: Click to edit
 display-not-found: '&cNo display object found in line of sight!'
 
