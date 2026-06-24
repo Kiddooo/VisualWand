@@ -207,14 +207,16 @@ gui-prop-view-range: '&eView Range: &f{value}'
 gui-prop-view-range-lore:
   - '&7'
   - '&fHow far the object is visible.'
+  - '&7Value is a multiplier; 1 is roughly 64 blocks.'
   - '&7'
-  - '&eLMB: +0.5 | RMB: -0.5'
+  - '&eLMB: +0.5 | RMB: -0.5 | Shift: Reset'
 gui-prop-shadow: '&eShadow: &f{value}'
 gui-prop-shadow-lore:
   - '&7'
   - '&fShadow radius under the object.'
+  - '&7Values are rounded to clean 0.1 increments.'
   - '&7'
-  - '&eLMB: +0.1 | RMB: -0.1'
+  - '&eLMB: +0.1 | RMB: -0.1 | Shift: Reset'
 gui-prop-brightness: '&eBrightness'
 gui-prop-brightness-lore:
   - '&7'
@@ -304,6 +306,7 @@ value-disabled: Disabled
 value-yes: 'Yes'
 value-no: 'No'
 value-auto: Auto
+value-none: None
 
 # Errors
 error-generic: '&cAn error occurred! Check console.'

@@ -3,6 +3,7 @@ package dev.kiddo.visualwand.gui;
 import java.util.List;
 
 import dev.kiddo.visualwand.VisualWand;
+import dev.kiddo.visualwand.util.DisplayPropertyUtil;
 import dev.kiddo.visualwand.util.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -63,13 +64,21 @@ public class PropertiesMenuGUI extends BaseGUI {
 
         inventory.setItem(12, createItem(
                 Material.SPYGLASS,
-                plugin.getLang().get("gui-prop-view-range", "value", display.getViewRange()),
+                plugin.getLang().get(
+                        "gui-prop-view-range",
+                        "value",
+                        DisplayPropertyUtil.formatViewRange(display.getViewRange())
+                ),
                 plugin.getLang().getColoredList("gui-prop-view-range-lore")
         ));
 
         inventory.setItem(13, createItem(
                 Material.BLACK_CONCRETE,
-                plugin.getLang().get("gui-prop-shadow", "value", display.getShadowRadius()),
+                plugin.getLang().get(
+                        "gui-prop-shadow",
+                        "value",
+                        DisplayPropertyUtil.formatNumber(display.getShadowRadius())
+                ),
                 plugin.getLang().getColoredList("gui-prop-shadow-lore")
         ));
 
@@ -243,9 +252,15 @@ public class PropertiesMenuGUI extends BaseGUI {
     }
 
     private void adjustShadow(ClickType clickType) {
+        if (clickType.isShiftClick()) {
+            display.setShadowRadius(0.0F);
+            open();
+            return;
+        }
+
         float current = display.getShadowRadius();
         float next = clickType.isRightClick() ? current - 0.1F : current + 0.1F;
-        display.setShadowRadius(Math.max(0.0F, Math.min(5.0F, next)));
+        display.setShadowRadius(DisplayPropertyUtil.roundTenths(Math.clamp(next, 0.0F, 5.0F)));
         open();
     }
 
@@ -261,8 +276,8 @@ public class PropertiesMenuGUI extends BaseGUI {
         int sky = brightness != null ? brightness.getSkyLight() : 7;
         int step = clickType.isRightClick() ? -1 : 1;
 
-        block = Math.max(0, Math.min(15, block + step));
-        sky = Math.max(0, Math.min(15, sky + step));
+        block = Math.clamp(block + step, 0, 15);
+        sky = Math.clamp(sky + step, 0, 15);
         display.setBrightness(new Display.Brightness(block, sky));
         open();
     }
@@ -352,7 +367,7 @@ public class PropertiesMenuGUI extends BaseGUI {
     private void handleSlot25(ClickType clickType) {
         if (display instanceof TextDisplay textDisplay) {
             int step = clickType.isRightClick() ? -10 : 10;
-            int opacity = Math.max(-128, Math.min(127, textDisplay.getTextOpacity() + step));
+            int opacity = Math.clamp(textDisplay.getTextOpacity() + step, -128, 127);
             textDisplay.setTextOpacity((byte) opacity);
             open();
         }
