@@ -48,7 +48,7 @@ public class BlockSelectGUI extends BaseGUI {
         inventory = Bukkit.createInventory(
                 this,
                 54,
-                Lang.colorize(plugin.getLang().get("gui-block-select-title"))
+                Lang.colorize("&8✦ &6Select Block")
         );
         populateBlocks();
     }

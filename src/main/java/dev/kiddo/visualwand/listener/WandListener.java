@@ -7,6 +7,7 @@ import dev.kiddo.visualwand.gizmo.GizmoSession;
 import dev.kiddo.visualwand.gui.EditMenuGUI;
 import dev.kiddo.visualwand.gui.BaseGUI;
 import dev.kiddo.visualwand.gui.MainMenuGUI;
+import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -194,7 +195,7 @@ public final class WandListener implements Listener {
         }
 
         if (!player.hasPermission("visualwand.use")) {
-            player.sendMessage(plugin.getLang().getPrefixed("no-permission"));
+            player.sendMessage(Lang.getPrefixed("&cYou don't have permission for this action!"));
             return;
         }
 
@@ -238,8 +239,8 @@ public final class WandListener implements Listener {
             if (player.isSneaking()) {
                 gizmoManager.stopGizmo(player);
                 plugin.getEditorManager().removeSession(player);
-                player.sendActionBar(plugin.getLang().getColored("gizmo-disabled-actionbar"));
-                player.sendMessage(plugin.getLang().getPrefixed("gizmo-disabled"));
+                player.sendActionBar(Lang.colorize("&eGizmo mode disabled."));
+                player.sendMessage(Lang.getPrefixed("&eGizmo mode disabled."));
             } else {
                 startTransformation(player, gizmo);
             }
@@ -325,16 +326,12 @@ public final class WandListener implements Listener {
             session.surfaceTargeting = !session.surfaceTargeting;
             recalculateMoveOffset(player, session);
             updateMoveTarget(player, session);
-            player.sendMessage(plugin.getLang().getPrefixed(
-                    session.surfaceTargeting
-                            ? "gizmo-move-targeting-surface"
-                            : "gizmo-move-targeting-air"));
+            player.sendMessage(Lang.getPrefixed(session.surfaceTargeting
+                    ? "&aMovement targeting: &fSURFACE"
+                    : "&eMovement targeting: &fAIR"));
         } else if (session.mode == GizmoMode.ROTATE) {
             session.axis = session.axis.next();
-            player.sendMessage(plugin.getLang().getPrefixed(
-                    "gizmo-rotation-axis-changed",
-                    "axis",
-                    localizedAxis(session.axis)));
+            player.sendMessage(Lang.getPrefixed("&eRotation axis: " + localizedAxis(session.axis) + "&e."));
         }
 
         sendActionBar(player, session);
@@ -371,7 +368,7 @@ public final class WandListener implements Listener {
     private void startTransformation(Player player, GizmoSession gizmo) {
         Display display = gizmo.getDisplay();
         if (display == null || !display.isValid()) {
-            player.sendMessage(plugin.getLang().getPrefixed("gizmo-transform-display-invalid"));
+            player.sendMessage(Lang.getPrefixed("&cThe gizmo display is no longer valid."));
             plugin.getGizmoManager().stopGizmo(player);
             plugin.getEditorManager().removeSession(player);
             return;
@@ -396,15 +393,12 @@ public final class WandListener implements Listener {
 
         if (session.mode == GizmoMode.MOVE) {
             initialiseMoveSession(player, session);
-            player.sendMessage(plugin.getLang().getPrefixed("gizmo-move-started"));
+            player.sendMessage(Lang.getPrefixed("&aMove started. &fAim to position; scroll to change depth, press Q to toggle surface targeting, right-click to confirm, or crouch + right-click to cancel."));
         } else if (session.mode == GizmoMode.SCALE) {
-            player.sendMessage(plugin.getLang().getPrefixed("gizmo-scale-started"));
+            player.sendMessage(Lang.getPrefixed("&aScale started. &fUse the mouse wheel to resize; crouch + wheel uses the fine increment; right-click confirms; crouch + right-click cancels."));
         } else {
             session.axis = initialRotationAxis;
-            player.sendMessage(plugin.getLang().getPrefixed(
-                    "gizmo-rotation-started",
-                    "axis",
-                    localizedAxis(session.axis)));
+            player.sendMessage(Lang.getPrefixed("&aRotate started on " + localizedAxis(session.axis) + "&a. &fUse the mouse wheel to rotate; press Q to cycle axes; crouch + wheel uses the fine increment; right-click confirms; crouch + right-click cancels."));
         }
 
         sessions.put(player.getUniqueId(), session);
@@ -456,7 +450,7 @@ public final class WandListener implements Listener {
                 restoreGlow(session);
                 resumeGizmo(player, session);
                 iterator.remove();
-                player.sendMessage(plugin.getLang().getPrefixed("gizmo-transform-wand-put-away"));
+                player.sendMessage(Lang.getPrefixed("&eTransformation cancelled because the wand was put away."));
                 continue;
             }
 
@@ -603,46 +597,24 @@ public final class WandListener implements Listener {
     /** Sends mode-specific, colourised transform state to the player action bar. */
     private void sendActionBar(Player player, TransformSession session) {
         if (session.mode == GizmoMode.MOVE) {
-            String modeKey;
+            String modeSegment;
             if (session.surfaceTargeting) {
-                modeKey = session.surfaceFound
-                        ? "gizmo-move-mode-surface"
-                        : "gizmo-move-mode-surface-no-hit";
+                modeSegment = session.surfaceFound ? "&aSURFACE" : "&cSURFACE—NO HIT";
             } else {
-                modeKey = "gizmo-move-mode-air";
+                modeSegment = "&eAIR";
             }
 
-            player.sendActionBar(plugin.getLang().getColored(
-                    "gizmo-move-actionbar",
-                    "distance",
-                    format(session.distance),
-                    "mode",
-                    plugin.getLang().getColored(modeKey)
-            ));
+            player.sendActionBar(Lang.colorize("&6MOVE &8| &f" + format(session.distance) + " blocks &8| " + modeSegment + " &8| &fWheel: depth &8| &fCrouch + wheel: fine step &8| &fQ: target mode &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
             return;
         }
 
         if (session.mode == GizmoMode.SCALE) {
             Vector3f scale = session.display.getTransformation().getScale();
-            player.sendActionBar(plugin.getLang().getColored(
-                    "gizmo-scale-actionbar",
-                    "x",
-                    format(scale.x),
-                    "y",
-                    format(scale.y),
-                    "z",
-                    format(scale.z)
-            ));
+            player.sendActionBar(Lang.colorize("&6SCALE &8| &fX " + format(scale.x) + "  Y " + format(scale.y) + "  Z " + format(scale.z) + " &8| &fWheel: size &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
             return;
         }
 
-        player.sendActionBar(plugin.getLang().getColored(
-                "gizmo-rotation-actionbar",
-                "axis",
-                localizedAxis(session.axis),
-                "angle",
-                formatAngle(session.rotationDegrees)
-        ));
+        player.sendActionBar(Lang.colorize("&6ROTATE &8| " + localizedAxis(session.axis) + " axis &8| &f" + formatAngle(session.rotationDegrees) + " &8| &fWheel: rotate &8| &fQ: axis &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
     }
 
     /** Commits the current state, restores the original glow value, and resumes the gizmo. */
@@ -651,8 +623,8 @@ public final class WandListener implements Listener {
         restoreGlow(session);
         resumeGizmo(player, session);
         if (sendMessage) {
-            player.sendActionBar(plugin.getLang().getColored("gizmo-transform-saved-actionbar"));
-            player.sendMessage(plugin.getLang().getPrefixed("gizmo-transform-confirmed"));
+            player.sendActionBar(Lang.colorize("&aTransformation saved."));
+            player.sendMessage(Lang.getPrefixed("&aTransformation confirmed."));
         }
     }
 
@@ -672,8 +644,8 @@ public final class WandListener implements Listener {
             resumeGizmo(player, session);
         }
         if (sendMessage) {
-            player.sendActionBar(plugin.getLang().getColored("gizmo-transform-cancelled-actionbar"));
-            player.sendMessage(plugin.getLang().getPrefixed("gizmo-transform-cancelled"));
+            player.sendActionBar(Lang.colorize("&eTransformation cancelled."));
+            player.sendMessage(Lang.getPrefixed("&eTransformation cancelled."));
         }
     }
 
@@ -751,7 +723,11 @@ public final class WandListener implements Listener {
      * @return colourized language value for the axis
      */
     private String localizedAxis(Axis axis) {
-        return plugin.getLang().getColored("gizmo-axis-" + axis.name().toLowerCase(java.util.Locale.ROOT));
+        return switch (axis) {
+            case X -> Lang.colorize("&cX");
+            case Y -> Lang.colorize("&2Y");
+            default -> Lang.colorize("&9Z");
+        };
     }
 
     // -------------------------------------------------------------------------
@@ -1235,34 +1211,18 @@ public final class WandListener implements Listener {
     private String describeDisplay(Display display, double distance) {
         String formattedDistance = format(distance);
         if (display instanceof BlockDisplay blockDisplay) {
-            return plugin.getLang().getColored(
-                    "target-display-block",
-                    "material",
-                    blockDisplay.getBlock().getMaterial().name(),
-                    "distance",
-                    formattedDistance);
+            return Lang.colorize("&fBlock display: &e" + blockDisplay.getBlock().getMaterial().name() + " &8| &f" + formattedDistance + " blocks");
         }
 
         if (display instanceof ItemDisplay itemDisplay) {
-            return plugin.getLang().getColored(
-                    "target-display-item",
-                    "material",
-                    itemDisplay.getItemStack().getType().name(),
-                    "distance",
-                    formattedDistance);
+            return Lang.colorize("&fItem display: &e" + itemDisplay.getItemStack().getType().name() + " &8| &f" + formattedDistance + " blocks");
         }
 
         if (display instanceof TextDisplay) {
-            return plugin.getLang().getColored(
-                    "target-display-text",
-                    "distance",
-                    formattedDistance);
+            return Lang.colorize("&fText display &8| &f" + formattedDistance + " blocks");
         }
 
-        return plugin.getLang().getColored(
-                "target-display-generic",
-                "distance",
-                formattedDistance);
+        return Lang.colorize("&fDisplay &8| &f" + formattedDistance + " blocks");
     }
 
     /**
@@ -1291,8 +1251,7 @@ public final class WandListener implements Listener {
      * @param display selected display entity
      */
     private void openEditMenu(Player player, Display display) {
-        player.sendMessage(plugin.getLang().getPrefixed(
-                "editor-opened", "type", getDisplayTypeName(display)));
+        player.sendMessage(Lang.getPrefixed("&aOpened editor for: &e" + getDisplayTypeName(display)));
         new EditMenuGUI(plugin, player, display).open();
     }
 
@@ -1310,7 +1269,7 @@ public final class WandListener implements Listener {
         Display display = getTargetedDisplay(player);
         if (display == null) {
             clearDeleteConfirmation(player);
-            player.sendMessage(plugin.getLang().getPrefixed("display-not-found"));
+            player.sendMessage(Lang.getPrefixed("&cNo display object found in line of sight!"));
             return;
         }
 
@@ -1321,7 +1280,7 @@ public final class WandListener implements Listener {
         if (pending != null) {
             if (!pending.display.isValid() || pending.expiresAtMillis <= now) {
                 deleteConfirmations.remove(playerId);
-                player.sendMessage(plugin.getLang().getPrefixed("display-delete-confirm-expired"));
+                player.sendMessage(Lang.getPrefixed("&eDelete confirmation expired."));
             } else if (pending.displayId.equals(display.getUniqueId())) {
                 deleteConfirmations.remove(playerId);
                 deleteDisplay(player, display);
@@ -1351,20 +1310,10 @@ public final class WandListener implements Listener {
 
         String seconds = formatSeconds(deleteConfirmationTimeoutMillis);
         String type = getDisplayTypeName(display);
-        player.sendMessage(plugin.getLang().getPrefixed(
-                targetChanged
-                        ? "display-delete-confirm-changed"
-                        : "display-delete-confirm-arm",
-                "type",
-                type,
-                "seconds",
-                seconds));
-        player.sendActionBar(plugin.getLang().getColored(
-                "display-delete-confirm-actionbar",
-                "type",
-                type,
-                "seconds",
-                seconds));
+        player.sendMessage(Lang.getPrefixed(targetChanged
+                ? "&eDelete target changed. &fCrouch + right-click again within &e" + seconds + "s &fto confirm deleting " + type + "."
+                : "&cDelete " + type + "? &fCrouch + right-click again within &e" + seconds + "s &fto confirm."));
+        player.sendActionBar(Lang.colorize("&cDelete armed &8| &f" + type + " &8| &fCrouch + right-click again within &e" + seconds + "s"));
     }
 
     /**
@@ -1382,10 +1331,7 @@ public final class WandListener implements Listener {
         plugin.getDisplayStorage().removeDisplay(display);
         display.remove();
 
-        player.sendMessage(plugin.getLang().getPrefixed(
-                "display-delete-confirmed",
-                "type",
-                getDisplayTypeName(display)));
+        player.sendMessage(Lang.getPrefixed("&cDeleted " + getDisplayTypeName(display) + "."));
     }
 
     /** Clears one player's pending delete confirmation without sending feedback. */

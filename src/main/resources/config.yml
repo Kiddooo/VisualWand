@@ -1,20 +1,13 @@
-# VisualWand Configuration
-
-# Language settings (en = English, pl = Polish)
-language: en
-
 # Wand settings
 wand:
   # Material for the Architect's Wand
   material: BLAZE_ROD
-  # Display name (supports color codes)
-  name: "&6✦ &eRóżdżka Architekta &6✦"
-  # Lore lines
+  name: "&6✦ &eArchitect's Wand &6✦"
   lore:
     - "&7"
-    - "&fPPM na powietrze &8→ &aTwórz obiekty"
-    - "&fPPM na obiekt &8→ &bEdytuj obiekt"
-    - "&fShift + PPM &8→ &cUsuń obiekt"
+    - "&fRMB in air &8→ &aCreate objects"
+    - "&fRMB on object &8→ &bEdit object"
+    - "&fShift + RMB &8→ &cDelete object"
     - "&7"
     - "&8Plugin by MiniGames.Cafe"
 

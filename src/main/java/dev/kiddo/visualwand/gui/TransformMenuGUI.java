@@ -1,5 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
+import java.util.List;
+
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.gizmo.GizmoMode;
 import dev.kiddo.visualwand.util.Lang;
@@ -31,86 +33,86 @@ public class TransformMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 54, Lang.colorize(plugin.getLang().get("gui-transform-title")));
+        inventory = Bukkit.createInventory(this, 54, Lang.colorize("&8✦ &6Transformations"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // === MOVEMENT BUTTONS ===
         // +X (Right)
         inventory.setItem(11, createItem(Material.RED_CONCRETE, 
-            plugin.getLang().get("gui-move-x-plus"),
+            "&c+X &7(Right)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // -X (Left)
         inventory.setItem(10, createItem(Material.RED_STAINED_GLASS, 
-            plugin.getLang().get("gui-move-x-minus"),
+            "&c-X &7(Left)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // +Y (Up)
         inventory.setItem(4, createItem(Material.LIME_CONCRETE, 
-            plugin.getLang().get("gui-move-y-plus"),
+            "&a+Y &7(Up)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // -Y (Down)
         inventory.setItem(22, createItem(Material.LIME_STAINED_GLASS, 
-            plugin.getLang().get("gui-move-y-minus"),
+            "&a-Y &7(Down)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // +Z (Forward)
         inventory.setItem(13, createItem(Material.BLUE_CONCRETE, 
-            plugin.getLang().get("gui-move-z-plus"),
+            "&9+Z &7(Forward)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // -Z (Backward)
         inventory.setItem(12, createItem(Material.BLUE_STAINED_GLASS, 
-            plugin.getLang().get("gui-move-z-minus"),
+            "&9-Z &7(Backward)",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // === ROTATION BUTTONS ===
         // Rotate X
         inventory.setItem(29, createItem(Material.RED_WOOL, 
-            plugin.getLang().get("gui-rotate-x"),
+            "&cRotate X",
             "&7Click: +15°", "&7Right-Click: -15°", "&7Shift: ±5°"));
         
         // Rotate Y
         inventory.setItem(30, createItem(Material.LIME_WOOL, 
-            plugin.getLang().get("gui-rotate-y"),
+            "&aRotate Y",
             "&7Click: +15°", "&7Right-Click: -15°", "&7Shift: ±5°"));
         
         // Rotate Z
         inventory.setItem(31, createItem(Material.BLUE_WOOL, 
-            plugin.getLang().get("gui-rotate-z"),
+            "&9Rotate Z",
             "&7Click: +15°", "&7Right-Click: -15°", "&7Shift: ±5°"));
         
         // Reset rotation
         inventory.setItem(32, createItem(Material.PURPLE_CONCRETE, 
-            plugin.getLang().get("gui-rotate-reset")));
+            "&7⟲ Reset Rotation"));
         
         // === SCALE BUTTONS ===
         // Scale up
         inventory.setItem(15, createItem(Material.YELLOW_CONCRETE, 
-            plugin.getLang().get("gui-scale-up"),
+            "&e↑ Scale Up",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // Scale down
         inventory.setItem(16, createItem(Material.YELLOW_STAINED_GLASS, 
-            plugin.getLang().get("gui-scale-down"),
+            "&e↓ Scale Down",
             "&7Shift+Click: x0.5", "&7Click: x1", "&7Right-Click: x5"));
         
         // Reset scale
         inventory.setItem(24, createItem(Material.ORANGE_CONCRETE, 
-            plugin.getLang().get("gui-scale-reset")));
+            "&7⟲ Reset Scale"));
         
         // === GIZMO TOGGLE ===
         boolean gizmoActive = plugin.getGizmoManager().hasActiveGizmo(player);
         String gizmoStatus = gizmoActive ? 
-            plugin.getLang().get("status-enabled") : 
-            plugin.getLang().get("status-disabled");
+            "&aEnabled" : 
+            "&cDisabled";
         
         inventory.setItem(40, createItem(
             gizmoActive ? Material.GLOWSTONE : Material.REDSTONE_LAMP,
-            plugin.getLang().get("gui-gizmo-toggle"),
-            plugin.getLang().getColoredList("gui-gizmo-toggle-lore").stream()
+            "&6✦ Toggle Gizmo",
+            Lang.colorizeList(List.of("&7", "&fEnables/disables visual gizmo.", "&7Currently: &e{status}", "&7", "&eClick to toggle!")).stream()
                 .map(line -> line.replace("{status}", gizmoStatus))
                 .toList()
         ));
@@ -118,16 +120,16 @@ public class TransformMenuGUI extends BaseGUI {
         // Gizmo mode buttons (if gizmo is active)
         if (gizmoActive) {
             inventory.setItem(38, createItem(Material.COMPASS, 
-                "&eTryb: &fPrzesuwanie",
-                "&7Kliknij aby aktywować tryb przesuwania."));
+                "&eMode: &fMove",
+                "&7Click to activate move mode."));
             
             inventory.setItem(39, createItem(Material.RECOVERY_COMPASS, 
-                "&eTryb: &fObracanie",
-                "&7Kliknij aby aktywować tryb obracania."));
+                "&eMode: &fRotate",
+                "&7Click to activate rotate mode."));
             
             inventory.setItem(41, createItem(Material.SPYGLASS, 
-                "&eTryb: &fSkalowanie",
-                "&7Kliknij aby aktywować tryb skalowania."));
+                "&eMode: &fScale",
+                "&7Click to activate scale mode."));
         }
         
         // Back button
@@ -172,15 +174,15 @@ public class TransformMenuGUI extends BaseGUI {
             }
             case 38 -> {
                 plugin.getGizmoManager().setMode(player, GizmoMode.MOVE);
-                player.sendMessage(plugin.getLang().getPrefixed("gizmo-mode-move"));
+                player.sendMessage(Lang.getPrefixed("&aActivated mode: &eMove"));
             }
             case 39 -> {
                 plugin.getGizmoManager().setMode(player, GizmoMode.ROTATE);
-                player.sendMessage(plugin.getLang().getPrefixed("gizmo-mode-rotate"));
+                player.sendMessage(Lang.getPrefixed("&aActivated mode: &eRotate"));
             }
             case 41 -> {
                 plugin.getGizmoManager().setMode(player, GizmoMode.SCALE);
-                player.sendMessage(plugin.getLang().getPrefixed("gizmo-mode-scale"));
+                player.sendMessage(Lang.getPrefixed("&aActivated mode: &eScale"));
             }
             
             // Navigation

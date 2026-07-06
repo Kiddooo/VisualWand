@@ -9,7 +9,6 @@ import dev.kiddo.visualwand.listener.DisplayInteractListener;
 import dev.kiddo.visualwand.listener.GUIListener;
 import dev.kiddo.visualwand.listener.WandListener;
 import dev.kiddo.visualwand.storage.DisplayStorage;
-import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.WandItem;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,7 +16,6 @@ public class VisualWand extends JavaPlugin {
 
     private static VisualWand instance;
     
-    private Lang lang;
     private WandItem wandItem;
     private EditorManager editorManager;
     private GizmoManager gizmoManager;
@@ -30,9 +28,6 @@ public class VisualWand extends JavaPlugin {
         
         // Save default config
         saveDefaultConfig();
-        
-        // Initialize language
-        lang = new Lang(this);
         
         // Initialize managers
         wandItem = new WandItem(this);
@@ -87,9 +82,6 @@ public class VisualWand extends JavaPlugin {
         return instance;
     }
 
-    public Lang getLang() {
-        return lang;
-    }
 
     public WandItem getWandItem() {
         return wandItem;
@@ -113,23 +105,7 @@ public class VisualWand extends JavaPlugin {
 
     public void reload() {
         reloadConfig();
-        lang.reload();
         wandItem.reload();
-        updatePlayersWands();
     }
 
-    /**
-     * Updates wand items in all online players' inventories after language change
-     */
-    public void updatePlayersWands() {
-        for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
-            org.bukkit.inventory.PlayerInventory inv = player.getInventory();
-            for (int i = 0; i < inv.getSize(); i++) {
-                org.bukkit.inventory.ItemStack item = inv.getItem(i);
-                if (wandItem.isWand(item)) {
-                    inv.setItem(i, wandItem.getWandItem());
-                }
-            }
-        }
-    }
 }

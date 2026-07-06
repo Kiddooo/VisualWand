@@ -1,5 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
+import java.util.List;
+
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import org.bukkit.Bukkit;
@@ -24,7 +26,7 @@ public class EditMenuGUI extends BaseGUI {
     @Override
     protected void createInventory() {
         String typeName = getDisplayTypeName();
-        String title = plugin.getLang().get("gui-edit-title", "type", typeName);
+        String title = "&8✦ &6Edit &8- &f" + typeName;
         inventory = Bukkit.createInventory(this, 45, Lang.colorize(title));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
@@ -32,34 +34,34 @@ public class EditMenuGUI extends BaseGUI {
         // Transformations button
         inventory.setItem(11, createItem(
             Material.COMPASS,
-            plugin.getLang().get("gui-edit-transform"),
-            plugin.getLang().getColoredList("gui-edit-transform-lore")
+            "&6⚙ Transformations",
+            Lang.colorizeList(List.of("&7", "&fMove, rotate and scale the object.", "&7", "&eClick to open!"))
         ));
         
         // Animations button
         inventory.setItem(13, createItem(
             Material.ENDER_EYE,
-            plugin.getLang().get("gui-edit-animation"),
-            plugin.getLang().getColoredList("gui-edit-animation-lore")
+            "&d✿ Animations",
+            Lang.colorizeList(List.of("&7", "&fAdd animations to the object.", "&7", "&eClick to open!"))
         ));
         
         // Properties button
         inventory.setItem(15, createItem(
             Material.WRITABLE_BOOK,
-            plugin.getLang().get("gui-edit-properties"),
-            plugin.getLang().getColoredList("gui-edit-properties-lore")
+            "&b✎ Properties",
+            Lang.colorizeList(List.of("&7", "&fChange object properties.", "&7", "&eClick to open!"))
         ));
         
         // Gizmo toggle
         boolean gizmoActive = plugin.getGizmoManager().hasActiveGizmo(player);
         String gizmoStatus = gizmoActive ? 
-            plugin.getLang().get("status-enabled") : 
-            plugin.getLang().get("status-disabled");
+            "&aEnabled" : 
+            "&cDisabled";
         
         inventory.setItem(22, createItem(
             gizmoActive ? Material.GLOWSTONE : Material.REDSTONE_LAMP,
-            plugin.getLang().get("gui-gizmo-toggle"),
-            plugin.getLang().getColoredList("gui-gizmo-toggle-lore").stream()
+            "&6✦ Toggle Gizmo",
+            Lang.colorizeList(List.of("&7", "&fEnables/disables visual gizmo.", "&7Currently: &e{status}", "&7", "&eClick to toggle!")).stream()
                 .map(line -> line.replace("{status}", gizmoStatus))
                 .toList()
         ));
@@ -67,8 +69,8 @@ public class EditMenuGUI extends BaseGUI {
         // Delete button
         inventory.setItem(31, createItem(
             Material.TNT,
-            plugin.getLang().get("gui-edit-delete"),
-            plugin.getLang().getColoredList("gui-edit-delete-lore")
+            "&c✖ Delete",
+            Lang.colorizeList(List.of("&7", "&fDeletes this object permanently!", "&7", "&cClick to delete!"))
         ));
         
         // Back button
@@ -113,7 +115,7 @@ public class EditMenuGUI extends BaseGUI {
                 plugin.getDisplayStorage().removeDisplay(display);
                 plugin.getGizmoManager().stopGizmo(player);
                 display.remove();
-                player.sendMessage(plugin.getLang().getPrefixed("display-deleted"));
+                player.sendMessage(Lang.getPrefixed("&cDeleted display object!"));
             }
             case 36 -> {
                 // Back to main menu

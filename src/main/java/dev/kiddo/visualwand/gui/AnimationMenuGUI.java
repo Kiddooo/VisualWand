@@ -1,5 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
+import java.util.List;
+
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.animation.AnimationType;
 import dev.kiddo.visualwand.util.Lang;
@@ -21,36 +23,36 @@ public class AnimationMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 36, Lang.colorize(plugin.getLang().get("gui-animation-title")));
+        inventory = Bukkit.createInventory(this, 36, Lang.colorize("&8✦ &6Animations"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // Slow Rotation
         inventory.setItem(11, createItem(
             Material.ENDER_PEARL,
-            plugin.getLang().get("gui-anim-slow-rotation"),
-            plugin.getLang().getColoredList("gui-anim-slow-rotation-lore")
+            "&e✦ Slow Rotation",
+            Lang.colorizeList(List.of("&7", "&fObject rotates slowly.", "&7Perfect for trophies and lootboxes.", "&7", "&aClick to apply!"))
         ));
         
         // Levitation
         inventory.setItem(13, createItem(
             Material.FEATHER,
-            plugin.getLang().get("gui-anim-levitation"),
-            plugin.getLang().getColoredList("gui-anim-levitation-lore")
+            "&b✦ Levitation",
+            Lang.colorizeList(List.of("&7", "&fObject floats up and down.", "&7Great effect for signposts.", "&7", "&aClick to apply!"))
         ));
         
         // Pulsing
         inventory.setItem(15, createItem(
             Material.HEART_OF_THE_SEA,
-            plugin.getLang().get("gui-anim-pulsing"),
-            plugin.getLang().getColoredList("gui-anim-pulsing-lore")
+            "&d✦ Pulsing",
+            Lang.colorizeList(List.of("&7", "&fObject pulses (changes size).", "&7Attracts player attention!", "&7", "&aClick to apply!"))
         ));
         
         // Stop animation
         inventory.setItem(22, createItem(
             Material.BARRIER,
-            plugin.getLang().get("gui-anim-stop"),
-            plugin.getLang().getColoredList("gui-anim-stop-lore")
+            "&c✖ Stop Animation",
+            Lang.colorizeList(List.of("&7", "&fStops the current animation.", "&7", "&cClick to stop!"))
         ));
         
         // Back button
@@ -66,25 +68,25 @@ public class AnimationMenuGUI extends BaseGUI {
             case 11 -> {
                 // Slow rotation
                 plugin.getAnimationManager().startAnimation(display, AnimationType.ROTATION);
-                player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Powolny Obrót"));
+                player.sendMessage(Lang.getPrefixed("&aCreated new object: &eSlow Rotation"));
                 player.closeInventory();
             }
             case 13 -> {
                 // Levitation
                 plugin.getAnimationManager().startAnimation(display, AnimationType.LEVITATION);
-                player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Lewitacja"));
+                player.sendMessage(Lang.getPrefixed("&aCreated new object: &eLevitation"));
                 player.closeInventory();
             }
             case 15 -> {
                 // Pulsing
                 plugin.getAnimationManager().startAnimation(display, AnimationType.SCALE);
-                player.sendMessage(plugin.getLang().getPrefixed("display-created", "type", "Pulsowanie"));
+                player.sendMessage(Lang.getPrefixed("&aCreated new object: &ePulsing"));
                 player.closeInventory();
             }
             case 22 -> {
                 // Stop animation
                 plugin.getAnimationManager().stopAnimation(display);
-                player.sendMessage(plugin.getLang().getPrefixed("editor-saved"));
+                player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
                 player.closeInventory();
             }
             case 27 -> {

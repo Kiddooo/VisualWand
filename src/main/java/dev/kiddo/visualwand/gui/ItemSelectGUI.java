@@ -3,14 +3,17 @@ package dev.kiddo.visualwand.gui;
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
+import dev.kiddo.visualwand.util.DisplayPropertyUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.HeightMap;
 import org.bukkit.Location;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.block.Block;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +42,7 @@ public class ItemSelectGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 54, Lang.colorize(plugin.getLang().get("gui-item-select-title")));
+        inventory = Bukkit.createInventory(this, 54, Lang.colorize("&8✦ &6Select Item"));
         populateItems();
     }
 
@@ -61,14 +64,6 @@ public class ItemSelectGUI extends BaseGUI {
         
         inventory.setItem(49, getCloseButton());
         
-        // Custom Model Data button
-        inventory.setItem(47, createItem(Material.COMMAND_BLOCK, 
-            "&6Custom Model Data",
-            "&7",
-            "&fWpisz wartość CMD dla przedmiotu.",
-            "&7Wymaga Resource Pack!",
-            "&7",
-            "&eKliknij aby ustawić!"));
         
         if (endIndex < items.size()) {
             inventory.setItem(53, createItem(Material.ARROW, "&aNastępna strona »"));
@@ -89,12 +84,6 @@ public class ItemSelectGUI extends BaseGUI {
             return;
         }
         
-        if (slot == 47) {
-            // Open CMD input
-            player.closeInventory();
-            plugin.getEditorManager().startCMDInput(player, null);
-            return;
-        }
         
         if (slot == 49) {
             player.closeInventory();
@@ -108,14 +97,34 @@ public class ItemSelectGUI extends BaseGUI {
     }
 
     private void createItemDisplay(ItemStack itemStack) {
-        Location targetLocation = RayTraceUtil.getTargetLocation(
-                player,
-                plugin.getConfig().getDouble("editor.max-distance", 50)
-        );
+        double maxDistance = plugin.getConfig().getDouble("editor.max-distance", 50);
+        RayTraceResult hit = player.rayTraceBlocks(maxDistance, FluidCollisionMode.NEVER);
 
-        Location spawnLocation = targetLocation.getBlock()
-                .getLocation()
-                .add(0.5D, 0.125D, 0.5D);
+        Location spawnLocation;
+        if (hit != null && hit.getHitBlock() != null) {
+            Block block = hit.getHitBlock();
+            Double surfaceY = DisplayPropertyUtil.getTopCollisionY(block);
+            if (surfaceY == null) {
+                surfaceY = (double) (block.getY() + 1);
+            }
+
+            spawnLocation = new Location(
+                    block.getWorld(),
+                    block.getX() + 0.5D,
+                    surfaceY, // entity origin sits exactly on the surface
+                    block.getZ() + 0.5D
+            );
+        } else {
+            Location targetLocation = RayTraceUtil.getTargetLocation(player, maxDistance);
+            Block block = targetLocation.getBlock();
+            Double surfaceY = DisplayPropertyUtil.getTopCollisionY(block);
+            spawnLocation = new Location(
+                    player.getWorld(),
+                    block.getX() + 0.5D,
+                    surfaceY != null ? surfaceY : block.getY() + 1.0D,
+                    block.getZ() + 0.5D
+            );
+        }
 
         player.getWorld().spawn(spawnLocation, ItemDisplay.class, itemDisplay -> {
             itemDisplay.setItemStack(itemStack);
@@ -126,10 +135,6 @@ public class ItemSelectGUI extends BaseGUI {
             plugin.getDisplayStorage().addDisplay(itemDisplay);
         });
 
-        player.sendMessage(plugin.getLang().getPrefixed(
-                "display-created",
-                "type",
-                "Item Display"
-        ));
+        player.sendMessage(Lang.getPrefixed("&aCreated new object: &eItem Display"));
     }
 }

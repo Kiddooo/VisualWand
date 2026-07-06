@@ -1,5 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
+import java.util.List;
+
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
@@ -19,29 +21,29 @@ public class MainMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 27, Lang.colorize(plugin.getLang().get("gui-main-title")));
+        inventory = Bukkit.createInventory(this, 27, Lang.colorize("&8✦ &6VisualWand &8- &fMain Menu"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // Block Display
         inventory.setItem(11, createItem(
             Material.BRICKS,
-            plugin.getLang().get("gui-create-block"),
-            plugin.getLang().getColoredList("gui-create-block-lore")
+            "&e✦ Block Display",
+            Lang.colorizeList(List.of("&7", "&fCreates a block display.", "&7Perfect for decorations and builds.", "&7", "&aClick to create!"))
         ));
         
         // Item Display
         inventory.setItem(13, createItem(
             Material.DIAMOND,
-            plugin.getLang().get("gui-create-item"),
-            plugin.getLang().getColoredList("gui-create-item-lore")
+            "&b✦ Item Display",
+            Lang.colorizeList(List.of("&7", "&fCreates an item display.", "&7", "&aClick to create!"))
         ));
         
         // Text Display
         inventory.setItem(15, createItem(
             Material.OAK_SIGN,
-            plugin.getLang().get("gui-create-text"),
-            plugin.getLang().getColoredList("gui-create-text-lore")
+            "&a✦ Text Display",
+            Lang.colorizeList(List.of("&7", "&fCreates a text display.", "&7Supports colors and formatting.", "&7", "&aClick to create!"))
         ));
         
         // Close button
@@ -78,18 +80,14 @@ public class MainMenuGUI extends BaseGUI {
                 .add(0.5D, 0.0D, 0.5D);
 
         player.getWorld().spawn(spawnLocation, TextDisplay.class, textDisplay -> {
-            textDisplay.setText(plugin.getLang().get("text-display-default"));
+            textDisplay.setText("Click to edit");
             textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
 
             plugin.getDisplayStorage().addDisplay(textDisplay);
         });
 
-        player.sendMessage(plugin.getLang().getPrefixed(
-                "display-created",
-                "type",
-                "Text Display"
-        ));
+        player.sendMessage(Lang.getPrefixed("&aCreated new object: &eText Display"));
 
         plugin.getEditorManager().startTextInput(player, null);
     }

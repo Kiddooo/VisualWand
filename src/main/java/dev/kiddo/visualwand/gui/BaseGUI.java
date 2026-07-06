@@ -97,10 +97,10 @@ public abstract class BaseGUI implements InventoryHolder {
     }
 
     protected ItemStack getBackButton() {
-        return createItem(Material.ARROW, plugin.getLang().get("gui-back"));
+        return createItem(Material.ARROW, "&7« Back");
     }
 
     protected ItemStack getCloseButton() {
-        return createItem(Material.BARRIER, plugin.getLang().get("gui-close"));
+        return createItem(Material.BARRIER, "&c✖ Close");
     }
 }

@@ -1,6 +1,7 @@
 package dev.kiddo.visualwand.gizmo;
 
 import dev.kiddo.visualwand.VisualWand;
+import dev.kiddo.visualwand.util.Lang;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -43,7 +44,7 @@ public class GizmoManager {
     public void startGizmo(Player player, Display display) {
         GizmoSession session = new GizmoSession(player, display);
         activeSessions.put(player.getUniqueId(), session);
-        player.sendMessage(plugin.getLang().getPrefixed("gizmo-mode-move"));
+        player.sendMessage(Lang.getPrefixed("&aActivated mode: &eMove"));
     }
 
     public void stopGizmo(Player player) {
@@ -82,12 +83,11 @@ public class GizmoManager {
         int nextIndex = (currentIndex + 1) % modes.length;
         session.setMode(modes[nextIndex]);
 
-        String modeKey = switch (modes[nextIndex]) {
-            case MOVE -> "gizmo-mode-move";
-            case ROTATE -> "gizmo-mode-rotate";
-            case SCALE -> "gizmo-mode-scale";
-        };
-        player.sendMessage(plugin.getLang().getPrefixed(modeKey));
+        player.sendMessage(switch (modes[nextIndex]) {
+            case MOVE -> Lang.getPrefixed("&aActivated mode: &eMove");
+            case ROTATE -> Lang.getPrefixed("&aActivated mode: &eRotate");
+            case SCALE -> Lang.getPrefixed("&aActivated mode: &eScale");
+        });
     }
 
     private void renderGizmo(GizmoSession session) {

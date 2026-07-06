@@ -15,7 +15,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
@@ -172,9 +171,6 @@ public class DisplayStorage {
         ItemStack item = display.getItemStack();
         if (item != null) {
             storage.set(path + ".item.material", item.getType().name());
-            if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
-                storage.set(path + ".item.custom-model-data", item.getItemMeta().getCustomModelData());
-            }
         }
         storage.set(path + ".item-transform", display.getItemDisplayTransform().name());
     }
@@ -258,14 +254,6 @@ public class DisplayStorage {
         if (material == null) return null;
 
         ItemStack item = new ItemStack(material);
-        int cmd = section.getInt("item.custom-model-data", 0);
-        if (cmd > 0) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                meta.setCustomModelData(cmd);
-                item.setItemMeta(meta);
-            }
-        }
 
         String transformStr = section.getString("item-transform", "GROUND");
         ItemDisplay.ItemDisplayTransform transform;

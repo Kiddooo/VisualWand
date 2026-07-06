@@ -39,11 +39,10 @@ public class WandItem {
 
         if (meta != null) {
             // Set display name from language file
-            String name = plugin.getLang().get("wand-name");
-            meta.setDisplayName(Lang.colorize(name));
+            meta.setDisplayName(Lang.colorize("&6✦ &eArchitect's Wand &6✦"));
 
             // Set lore from language file
-            List<String> lore = plugin.getLang().getColoredList("wand-lore");
+            List<String> lore = Lang.colorizeList(List.of("&7", "&fRMB in air: &eCreate objects", "&fRMB on object: &eEdit", "&fShift + RMB: &cDelete", "&7"));
             meta.setLore(lore);
 
             // Add enchant glow

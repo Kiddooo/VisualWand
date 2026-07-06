@@ -20,22 +20,22 @@ public class TextColorGUI extends BaseGUI {
 
     // Color data: Material, color code, NamedTextColor
     private static final ColorData[] COLORS = {
-        new ColorData(Material.WHITE_DYE, "&f", NamedTextColor.WHITE, "White", "Biały"),
-        new ColorData(Material.LIGHT_GRAY_DYE, "&7", NamedTextColor.GRAY, "Gray", "Szary"),
-        new ColorData(Material.GRAY_DYE, "&8", NamedTextColor.DARK_GRAY, "Dark Gray", "Ciemnoszary"),
-        new ColorData(Material.BLACK_DYE, "&0", NamedTextColor.BLACK, "Black", "Czarny"),
-        new ColorData(Material.RED_DYE, "&c", NamedTextColor.RED, "Red", "Czerwony"),
-        new ColorData(Material.ORANGE_DYE, "&6", NamedTextColor.GOLD, "Gold", "Złoty"),
-        new ColorData(Material.YELLOW_DYE, "&e", NamedTextColor.YELLOW, "Yellow", "Żółty"),
-        new ColorData(Material.LIME_DYE, "&a", NamedTextColor.GREEN, "Green", "Zielony"),
-        new ColorData(Material.GREEN_DYE, "&2", NamedTextColor.DARK_GREEN, "Dark Green", "Ciemnozielony"),
-        new ColorData(Material.CYAN_DYE, "&b", NamedTextColor.AQUA, "Aqua", "Cyjan"),
-        new ColorData(Material.LIGHT_BLUE_DYE, "&3", NamedTextColor.DARK_AQUA, "Dark Aqua", "Ciemny cyjan"),
-        new ColorData(Material.BLUE_DYE, "&9", NamedTextColor.BLUE, "Blue", "Niebieski"),
-        new ColorData(Material.PURPLE_DYE, "&5", NamedTextColor.DARK_PURPLE, "Dark Purple", "Ciemnofioletowy"),
-        new ColorData(Material.MAGENTA_DYE, "&d", NamedTextColor.LIGHT_PURPLE, "Light Purple", "Jasnofioletowy"),
-        new ColorData(Material.PINK_DYE, "&d", NamedTextColor.LIGHT_PURPLE, "Pink", "Różowy"),
-        new ColorData(Material.BROWN_DYE, "&4", NamedTextColor.DARK_RED, "Dark Red", "Ciemnoczerwony"),
+        new ColorData(Material.WHITE_DYE, "&f", NamedTextColor.WHITE, "White"),
+        new ColorData(Material.LIGHT_GRAY_DYE, "&7", NamedTextColor.GRAY, "Gray"),
+        new ColorData(Material.GRAY_DYE, "&8", NamedTextColor.DARK_GRAY, "Dark Gray"),
+        new ColorData(Material.BLACK_DYE, "&0", NamedTextColor.BLACK, "Black"),
+        new ColorData(Material.RED_DYE, "&c", NamedTextColor.RED, "Red"),
+        new ColorData(Material.ORANGE_DYE, "&6", NamedTextColor.GOLD, "Gold"),
+        new ColorData(Material.YELLOW_DYE, "&e", NamedTextColor.YELLOW, "Yellow"),
+        new ColorData(Material.LIME_DYE, "&a", NamedTextColor.GREEN, "Green"),
+        new ColorData(Material.GREEN_DYE, "&2", NamedTextColor.DARK_GREEN, "Dark Green"),
+        new ColorData(Material.CYAN_DYE, "&b", NamedTextColor.AQUA, "Aqua"),
+        new ColorData(Material.LIGHT_BLUE_DYE, "&3", NamedTextColor.DARK_AQUA, "Dark Aqua"),
+        new ColorData(Material.BLUE_DYE, "&9", NamedTextColor.BLUE, "Blue"),
+        new ColorData(Material.PURPLE_DYE, "&5", NamedTextColor.DARK_PURPLE, "Dark Purple"),
+        new ColorData(Material.MAGENTA_DYE, "&d", NamedTextColor.LIGHT_PURPLE, "Light Purple"),
+        new ColorData(Material.PINK_DYE, "&d", NamedTextColor.LIGHT_PURPLE, "Pink"),
+        new ColorData(Material.BROWN_DYE, "&4", NamedTextColor.DARK_RED, "Dark Red"),
     };
 
     public TextColorGUI(VisualWand plugin, Player player, TextDisplay textDisplay) {
@@ -45,10 +45,9 @@ public class TextColorGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        String lang = plugin.getLang().getCurrentLanguage();
-        boolean isPl = lang.equals("pl");
         
-        String title = isPl ? "&8✦ &6Kolor Tekstu" : "&8✦ &6Text Color";
+        
+        String title = "&8✦ &6Text Color";
         inventory = Bukkit.createInventory(this, 45, Lang.colorize(title));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
@@ -58,8 +57,8 @@ public class TextColorGUI extends BaseGUI {
         
         for (int i = 0; i < COLORS.length && i < slots.length; i++) {
             ColorData color = COLORS[i];
-            String colorName = isPl ? color.namePl : color.nameEn;
-            String loreText = isPl ? "&7Kliknij aby ustawić kolor" : "&7Click to set color";
+            String colorName = color.name;
+            String loreText = "&7Click to set color";
             
             inventory.setItem(slots[i], createItem(
                 color.material,
@@ -67,30 +66,30 @@ public class TextColorGUI extends BaseGUI {
                 "&7",
                 loreText,
                 "&7",
-                "&fPodgląd: " + color.code + "Przykładowy tekst"
+                "&fPreview: " + color.code + "Sample text"
             ));
         }
         
         // Text formatting options
-        String boldText = isPl ? "&lPogrubienie" : "&lBold";
-        String italicText = isPl ? "&oKursywa" : "&oItalic";
-        String underlineText = isPl ? "&nPodkreślenie" : "&nUnderline";
-        String strikeText = isPl ? "&mPrzekreślenie" : "&mStrikethrough";
+        String boldText = "&lBold";
+        String italicText = "&oItalic";
+        String underlineText = "&nUnderline";
+        String strikeText = "&mStrikethrough";
         
         inventory.setItem(31, createItem(Material.ANVIL, boldText,
-            "&7", isPl ? "&7Przełącz pogrubienie" : "&7Toggle bold"));
+            "&7", "&7Toggle bold"));
         inventory.setItem(32, createItem(Material.FEATHER, italicText,
-            "&7", isPl ? "&7Przełącz kursywę" : "&7Toggle italic"));
+            "&7", "&7Toggle italic"));
         inventory.setItem(33, createItem(Material.IRON_CHAIN, underlineText,
-            "&7", isPl ? "&7Przełącz podkreślenie" : "&7Toggle underline"));
+            "&7", "&7Toggle underline"));
         inventory.setItem(34, createItem(Material.BARRIER, strikeText,
-            "&7", isPl ? "&7Przełącz przekreślenie" : "&7Toggle strikethrough"));
+            "&7", "&7Toggle strikethrough"));
         
         // Rainbow gradient option
-        String rainbowText = isPl ? "&c&lT&6&lę&e&lc&a&lz&b&la" : "&c&lR&6&la&e&li&a&ln&b&lb&9&lo&d&lw";
+        String rainbowText = "&c&lR&6&la&e&li&a&ln&b&lb&9&lo&d&lw";
         inventory.setItem(30, createItem(Material.PRISMARINE_SHARD, rainbowText,
             "&7",
-            isPl ? "&7Zastosuj efekt tęczy" : "&7Apply rainbow effect"));
+            "&7Apply rainbow effect"));
         
         // Back button
         inventory.setItem(36, getBackButton());
@@ -136,8 +135,7 @@ public class TextColorGUI extends BaseGUI {
         
         textDisplay.text(newText);
         
-        String lang = plugin.getLang().getCurrentLanguage();
-        player.sendMessage(plugin.getLang().getPrefixed(lang.equals("pl") ? "editor-saved" : "editor-saved"));
+        player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
     }
 
     private void toggleDecoration(TextDecoration decoration) {
@@ -186,9 +184,8 @@ public class TextColorGUI extends BaseGUI {
         
         textDisplay.text(rainbowText);
         
-        String lang = plugin.getLang().getCurrentLanguage();
-        player.sendMessage(plugin.getLang().getPrefixed(lang.equals("pl") ? "editor-saved" : "editor-saved"));
+        player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
     }
 
-    private record ColorData(Material material, String code, NamedTextColor textColor, String nameEn, String namePl) {}
+    private record ColorData(Material material, String code, NamedTextColor textColor, String name) {}
 }
