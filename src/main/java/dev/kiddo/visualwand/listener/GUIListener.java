@@ -2,12 +2,13 @@ package dev.kiddo.visualwand.listener;
 
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.gui.BaseGUI;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.InventoryHolder;
 
 public class GUIListener implements Listener {
@@ -49,14 +50,14 @@ public class GUIListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        
+
         // Check if player is in text input mode
         if (plugin.getEditorManager().isAwaitingInput(player)) {
             event.setCancelled(true);
-            String message = event.getMessage();
-            
+            String message = PlainTextComponentSerializer.plainText().serialize(event.message());
+
             // Handle the input on the main thread
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 plugin.getEditorManager().handleChatInput(player, message);

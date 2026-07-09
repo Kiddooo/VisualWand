@@ -30,6 +30,7 @@ public abstract class BaseGUI implements InventoryHolder {
     
     public abstract void handleClick(int slot, ItemStack item, ClickType clickType);
     
+    @SuppressWarnings("EmptyMethod")
     public void handleClose() {
         // Override in subclasses if needed
     }

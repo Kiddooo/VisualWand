@@ -86,7 +86,6 @@ public final class DisplayPropertyUtil {
      * @param display item display to change
      * @param player player receiving feedback
      * @param clickType inventory click type
-     * @param plugin plugin instance for localized feedback
      */
     public static void applyItemPreset(
             ItemDisplay display,
@@ -118,7 +117,6 @@ public final class DisplayPropertyUtil {
      * @param display display to move
      * @param player player receiving feedback
      * @param clickType inventory click type
-     * @param plugin plugin instance for localized feedback
      */
     public static void placeOnSurface(
             Display display,
