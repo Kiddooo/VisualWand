@@ -80,7 +80,7 @@ public class MainMenuGUI extends BaseGUI {
                 .add(0.5D, 0.0D, 0.5D);
 
         player.getWorld().spawn(spawnLocation, TextDisplay.class, textDisplay -> {
-            textDisplay.setText("Click to edit");
+            textDisplay.text(net.kyori.adventure.text.Component.text("Click to edit"));
             textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
 

@@ -21,7 +21,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
+        if (!(event.getWhoClicked() instanceof Player)) {
             return;
         }
 
@@ -38,7 +38,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!(event.getPlayer() instanceof Player player)) {
+        if (!(event.getPlayer() instanceof Player)) {
             return;
         }
 
@@ -59,9 +59,7 @@ public class GUIListener implements Listener {
             String message = PlainTextComponentSerializer.plainText().serialize(event.message());
 
             // Handle the input on the main thread
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                plugin.getEditorManager().handleChatInput(player, message);
-            });
+            plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getEditorManager().handleChatInput(player, message));
         }
     }
 }
