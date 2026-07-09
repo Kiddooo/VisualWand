@@ -29,7 +29,7 @@ public class EditMenuGUI extends BaseGUI {
         String title = "&8✦ &6Edit &8- &f" + typeName;
         inventory = Bukkit.createInventory(this, 45, Lang.getComponent(title));
 
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
 
         // Transformations button
         inventory.setItem(11, createItem(

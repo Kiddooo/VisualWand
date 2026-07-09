@@ -9,7 +9,6 @@ import dev.kiddo.visualwand.gui.BaseGUI;
 import dev.kiddo.visualwand.gui.MainMenuGUI;
 import dev.kiddo.visualwand.util.Lang;
 import net.kyori.adventure.text.Component;
-import dev.kiddo.visualwand.util.RayTraceUtil;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,16 +41,15 @@ import org.joml.Vector3f;
 
 /**
  * Coordinates all wand input used to create, edit, delete, and transform display entities.
- *
  * The listener owns the temporary state for active move, scale, and rotation operations.
  * It pauses the normal particle gizmo while an operation is active, highlights the edited
  * display with its glow outline, and restores the previous gizmo state when the operation
  * is confirmed or cancelled.
- *
+
  * Idle gizmo controls:
  * - Left-click cycles move, rotate, and scale modes.
  * - Right-click starts the selected mode.
- *
+
  * Active transformation controls:
  * - Move follows the player's aim; the mouse wheel changes depth and Q toggles surface mode.
  * - Scale uses the mouse wheel; crouching enables the configured alternate adjustment factor.
@@ -191,7 +189,7 @@ public final class WandListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        if (!isHoldingWand(player)) {
+        if (isHoldingWand(player)) {
             return;
         }
 
@@ -278,7 +276,7 @@ public final class WandListener implements Listener {
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         TransformSession session = sessions.get(player.getUniqueId());
-        if (session == null || !isHoldingWand(player)) {
+        if (session == null || isHoldingWand(player)) {
             return;
         }
 
@@ -293,7 +291,7 @@ public final class WandListener implements Listener {
 
         if (session.mode == GizmoMode.MOVE) {
             double multiplier = player.isSneaking() ? moveFineMultiplier : 1.0D;
-            session.distance = clamp(
+            session.distance = Math.clamp(
                     session.distance + direction * moveScrollStep * multiplier * steps,
                     minMoveDistance,
                     maxMoveDistance);
@@ -340,9 +338,9 @@ public final class WandListener implements Listener {
 
     /**
      * Cleans up transformation, editor, and gizmo state when a player disconnects.
-     *
+
      * Cancellation is silent because the player can no longer receive useful feedback.
-     *
+
      * @param event player disconnect event
      */
     @EventHandler
@@ -419,7 +417,7 @@ public final class WandListener implements Listener {
         if (projectedDistance < minMoveDistance) {
             projectedDistance = eye.distance(original);
         }
-        session.distance = clamp(projectedDistance, minMoveDistance, maxMoveDistance);
+        session.distance = Math.clamp(projectedDistance, minMoveDistance, maxMoveDistance);
 
         Location anchor = eye.clone().add(direction.clone().multiply(session.distance));
         session.moveOffset = original.toVector().subtract(anchor.toVector());
@@ -446,7 +444,7 @@ public final class WandListener implements Listener {
                 continue;
             }
 
-            if (!isHoldingWand(player)) {
+            if (isHoldingWand(player)) {
                 restoreOriginalState(session);
                 restoreGlow(session);
                 resumeGizmo(player, session);
@@ -485,7 +483,8 @@ public final class WandListener implements Listener {
 
         if (session.surfaceTargeting) {
             RayTraceResult hit = player.rayTraceBlocks(maxMoveDistance, FluidCollisionMode.NEVER);
-            if (hit != null && hit.getHitPosition() != null) {
+            if (hit != null) {
+                hit.getHitPosition();
                 Vector hitPosition = hit.getHitPosition().clone();
                 if (hit.getHitBlockFace() != null) {
                     hitPosition.add(hit.getHitBlockFace().getDirection().clone().multiply(surfaceOffset));
@@ -522,7 +521,8 @@ public final class WandListener implements Listener {
 
         if (session.surfaceTargeting) {
             RayTraceResult hit = player.rayTraceBlocks(maxMoveDistance, FluidCollisionMode.NEVER);
-            if (hit != null && hit.getHitPosition() != null) {
+            if (hit != null) {
+                hit.getHitPosition();
                 Vector hitPosition = hit.getHitPosition().clone();
                 if (hit.getHitBlockFace() != null) {
                     hitPosition.add(hit.getHitBlockFace().getDirection().clone().multiply(surfaceOffset));
@@ -566,7 +566,7 @@ public final class WandListener implements Listener {
 
     /**
      * Applies a fixed local-axis rotation step to the display left quaternion.
-     *
+
      * The existing rotation is multiplied by the new delta, matching the order used by the
      * transformation GUI. The result is normalised to prevent numerical drift after repeated
      * wheel input.
@@ -681,10 +681,10 @@ public final class WandListener implements Listener {
 
     /**
      * Restores the paused gizmo after a transformation ends.
-     *
+
      * Direct map access preserves the exact session instance and selected mode. If reflection
      * was unavailable, the method recreates the gizmo through the public manager API.
-     *
+
      * @param player owner of the gizmo
      * @param session completed transformation state containing the paused gizmo
      */
@@ -769,8 +769,8 @@ public final class WandListener implements Listener {
         return fallback;
     }
 
-    /** Reads a finite scaling factor greater than one. */
-    /**
+    /** Reads a finite scaling factor greater than one.
+
      * Loads a finite double constrained to the supplied inclusive range.
      * Invalid values are replaced with the fallback and reported to the server log.
      */
@@ -814,16 +814,16 @@ public final class WandListener implements Listener {
 
     /**
      * Updates the temporary glow outline for the display under the player's crosshair.
-     *
+
      * Highlighting is intentionally disabled while the player is transforming a display,
      * using an open VisualWand GUI, or working with the particle gizmo. Those states have
      * their own feedback and should not fight with the normal targeting indicator.
-     *
+
      * @param player player whose crosshair target should be checked
      */
     private void updateHoverTarget(Player player) {
         if (!player.isOnline()
-                || !isHoldingWand(player)
+                || isHoldingWand(player)
                 || !player.hasPermission("visualwand.use")
                 || sessions.containsKey(player.getUniqueId())
                 || plugin.getGizmoManager().getSession(player) != null
@@ -902,17 +902,17 @@ public final class WandListener implements Listener {
     /**
      * Finds the nearest display whose selection shape is directly intersected by
      * the player's crosshair ray.
-     *
+
      * Block displays are tested against the vanilla block state's voxel shape,
      * which handles vanilla non-cube blocks such as copper golem statues. Item
      * and text displays keep simple fallback boxes because they do not have a
      * server-side vanilla block shape.
-     *
+
      * This method is the single targeting path for hover, edit, and delete. Do
      * not use RayTraceUtil.rayTraceDisplay for those actions, because that
      * utility is intentionally loose and can select nearby displays that are
      * not actually under the crosshair.
-     *
+
      * @param player player whose view ray should be tested
      * @return nearest intersected display, or null when the ray misses all displays
      */
@@ -954,7 +954,7 @@ public final class WandListener implements Listener {
     /**
      * Returns the world-space distance from the ray start to the first
      * intersection with the display's selection shape.
-     *
+
      * A negative return value means the ray missed the display.
      */
     private double getDisplayHitDistance(
@@ -979,8 +979,10 @@ public final class WandListener implements Listener {
 
         BoundingBox selectionBox = getSimpleDisplaySelectionBox(display);
         RayTraceResult hit = selectionBox.rayTrace(rayStart, rayDirection, maxDistance);
-        if (hit == null || hit.getHitPosition() == null) {
+        if (hit == null) {
             return -1.0D;
+        } else {
+            hit.getHitPosition();
         }
 
         return hit.getHitPosition().distance(rayStart);
@@ -989,7 +991,7 @@ public final class WandListener implements Listener {
     /**
      * Ray-tests a block display against the vanilla voxel shape of its displayed
      * block state.
-     *
+
      * The player ray is transformed into the display's local coordinate space,
      * each vanilla shape AABB is tested locally, and the nearest hit is converted
      * back to world distance. Testing in local space avoids the overly-large
@@ -1037,8 +1039,10 @@ public final class WandListener implements Listener {
                     localDirection,
                     localMaxDistance);
 
-            if (localHit == null || localHit.getHitPosition() == null) {
+            if (localHit == null) {
                 continue;
+            } else {
+                localHit.getHitPosition();
             }
 
             Vector worldHit = displayLocalToWorld(
@@ -1163,43 +1167,37 @@ public final class WandListener implements Listener {
     private BoundingBox getSimpleDisplaySelectionBox(Display display) {
         Location location = display.getLocation();
 
-        if (display instanceof BlockDisplay) {
-            return new BoundingBox(
+        return switch (display) {
+            case BlockDisplay blockDisplay -> new BoundingBox(
                     location.getX(),
                     location.getY(),
                     location.getZ(),
                     location.getX() + 1.0D,
                     location.getY() + 1.0D,
                     location.getZ() + 1.0D);
-        }
-
-        if (display instanceof ItemDisplay) {
-            return new BoundingBox(
+            case ItemDisplay itemDisplay -> new BoundingBox(
                     location.getX() - 0.5D,
                     location.getY() - 0.25D,
                     location.getZ() - 0.5D,
                     location.getX() + 0.5D,
                     location.getY() + 0.75D,
                     location.getZ() + 0.5D);
-        }
-
-        if (display instanceof TextDisplay) {
-            return new BoundingBox(
+            case TextDisplay textDisplay -> new BoundingBox(
                     location.getX() - 0.75D,
                     location.getY() - 0.25D,
                     location.getZ() - 0.1D,
                     location.getX() + 0.75D,
                     location.getY() + 0.5D,
                     location.getZ() + 0.1D);
-        }
+            default -> new BoundingBox(
+                    location.getX() - 0.5D,
+                    location.getY() - 0.5D,
+                    location.getZ() - 0.5D,
+                    location.getX() + 0.5D,
+                    location.getY() + 0.5D,
+                    location.getZ() + 0.5D);
+        };
 
-        return new BoundingBox(
-                location.getX() - 0.5D,
-                location.getY() - 0.5D,
-                location.getZ() - 0.5D,
-                location.getX() + 0.5D,
-                location.getY() + 0.5D,
-                location.getZ() + 0.5D);
     }
 
     /**
@@ -1258,7 +1256,7 @@ public final class WandListener implements Listener {
 
     /**
      * Handles crouch-right-click deletion through a two-step confirmation.
-     *
+
      * The first crouch-right-click arms deletion for the currently targeted display.
      * Repeating the same input on the same target before the timeout expires performs
      * the actual deletion. Targeting a different display replaces the pending target
@@ -1347,7 +1345,7 @@ public final class WandListener implements Listener {
             DeleteConfirmation pending = entry.getValue();
             return player == null
                     || !player.isOnline()
-                    || !isHoldingWand(player)
+                    || isHoldingWand(player)
                     || !pending.display.isValid()
                     || pending.expiresAtMillis <= now;
         });
@@ -1359,7 +1357,7 @@ public final class WandListener implements Listener {
             return minScale;
         }
         float sign = value < 0.0F ? -1.0F : 1.0F;
-        float magnitude = Math.max(minScale, Math.min(maxScale, Math.abs(value)));
+        float magnitude = Math.clamp(Math.abs(value), minScale, maxScale);
         return sign * magnitude;
     }
 
@@ -1412,18 +1410,6 @@ public final class WandListener implements Listener {
             difference += 9;
         }
         return difference;
-    }
-
-    /**
-     * Restricts a numeric value to an inclusive range.
-     *
-     * @param value value to constrain
-     * @param minimum lower bound
-     * @param maximum upper bound
-     * @return constrained value
-     */
-    private static double clamp(double value, double minimum, double maximum) {
-        return Math.max(minimum, Math.min(maximum, value));
     }
 
     /**
@@ -1530,7 +1516,7 @@ public final class WandListener implements Listener {
 
     /**
      * Stores the display selected by the first crouch-right-click delete input.
-     *
+
      * The same player must target this same valid display again before the expiry time
      * for deletion to proceed.
      */
@@ -1549,7 +1535,7 @@ public final class WandListener implements Listener {
 
     /**
      * Stores temporary glow state for a display being targeted by one or more players.
-     *
+
      * The original glow value must be restored when the final viewer stops targeting
      * the display. The viewer count prevents one player from clearing another
      * player's temporary highlight.

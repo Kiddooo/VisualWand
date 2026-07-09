@@ -64,21 +64,21 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 
 ## 📋 Commands
 
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/vw wand` | Get the Architect's Wand | `visualwand.give` |
-| `/vw reload` | Reload configuration | `visualwand.admin` |
-| `/vw lang <pl/en>` | Change language | `visualwand.admin` |
-| `/vw help` | Show help | `visualwand.use` |
-| `/vwgive` | Shortcut to get the wand | `visualwand.give` |
+| Command            | Description              | Permission         |
+|--------------------|--------------------------|--------------------|
+| `/vw wand`         | Get the Architect's Wand | `visualwand.give`  |
+| `/vw reload`       | Reload configuration     | `visualwand.admin` |
+| `/vw lang <pl/en>` | Change language          | `visualwand.admin` |
+| `/vw help`         | Show help                | `visualwand.use`   |
+| `/vwgive`          | Shortcut to get the wand | `visualwand.give`  |
 
 ## 🔐 Permissions
 
-| Permission | Description | Default |
-|------------|-------------|---------|
-| `visualwand.use` | Use the wand and editor | OP |
-| `visualwand.give` | Ability to receive the wand | OP |
-| `visualwand.admin` | Full access (includes all above) | OP |
+| Permission         | Description                      | Default |
+|--------------------|----------------------------------|---------|
+| `visualwand.use`   | Use the wand and editor          | OP      |
+| `visualwand.give`  | Ability to receive the wand      | OP      |
+| `visualwand.admin` | Full access (includes all above) | OP      |
 
 ---
 
@@ -226,21 +226,21 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 
 ## 📋 Komendy
 
-| Komenda | Opis | Uprawnienie |
-|---------|------|-------------|
-| `/vw wand` | Otrzymaj Różdżkę Architekta | `visualwand.give` |
-| `/vw reload` | Przeładuj konfigurację | `visualwand.admin` |
-| `/vw lang <pl/en>` | Zmień język | `visualwand.admin` |
-| `/vw help` | Wyświetl pomoc | `visualwand.use` |
-| `/vwgive` | Skrót do otrzymania różdżki | `visualwand.give` |
+| Komenda            | Opis                        | Uprawnienie        |
+|--------------------|-----------------------------|--------------------|
+| `/vw wand`         | Otrzymaj Różdżkę Architekta | `visualwand.give`  |
+| `/vw reload`       | Przeładuj konfigurację      | `visualwand.admin` |
+| `/vw lang <pl/en>` | Zmień język                 | `visualwand.admin` |
+| `/vw help`         | Wyświetl pomoc              | `visualwand.use`   |
+| `/vwgive`          | Skrót do otrzymania różdżki | `visualwand.give`  |
 
 ## 🔐 Uprawnienia
 
-| Uprawnienie | Opis | Domyślnie |
-|-------------|------|-----------|
-| `visualwand.use` | Używanie różdżki i edytora | OP |
-| `visualwand.give` | Możliwość otrzymania różdżki | OP |
-| `visualwand.admin` | Pełny dostęp (zawiera wszystkie powyższe) | OP |
+| Uprawnienie        | Opis                                      | Domyślnie |
+|--------------------|-------------------------------------------|-----------|
+| `visualwand.use`   | Używanie różdżki i edytora                | OP        |
+| `visualwand.give`  | Możliwość otrzymania różdżki              | OP        |
+| `visualwand.admin` | Pełny dostęp (zawiera wszystkie powyższe) | OP        |
 
 ---
 

@@ -8,6 +8,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -147,24 +148,29 @@ public class AnimationManager {
         double range = (maxScale - minScale) / 2;
         double center = (maxScale + minScale) / 2;
         double scale = center + Math.sin(tick * speed * Math.PI * 2) * range;
-        
+
+        Transformation newTransformation = getTransformation(display, data, (float) scale);
+
+        display.setTransformation(newTransformation);
+    }
+
+    private static @NonNull Transformation getTransformation(Display display, AnimationData data, float scale) {
         Transformation current = display.getTransformation();
-        
+
         // Get original scale from original transformation
         Vector3f originalScale = data.originalTransformation().getScale();
-        float newScaleX = originalScale.x * (float) scale;
-        float newScaleY = originalScale.y * (float) scale;
-        float newScaleZ = originalScale.z * (float) scale;
-        
-        Transformation newTransformation = new Transformation(
+        float newScaleX = originalScale.x * scale;
+        float newScaleY = originalScale.y * scale;
+        float newScaleZ = originalScale.z * scale;
+
+        return new Transformation(
             current.getTranslation(),
             current.getLeftRotation(),
             new Vector3f(newScaleX, newScaleY, newScaleZ),
             current.getRightRotation()
         );
-        
-        display.setTransformation(newTransformation);
     }
+
 
     private record AnimationData(
         Display display,

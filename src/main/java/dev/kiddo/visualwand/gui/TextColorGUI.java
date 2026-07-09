@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public class TextColorGUI extends BaseGUI {
 
@@ -50,12 +51,12 @@ public class TextColorGUI extends BaseGUI {
         String title = "&8✦ &6Text Color";
         inventory = Bukkit.createInventory(this, 45, Lang.getComponent(title));
         
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
         
         // Add color dyes
         int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29};
         
-        for (int i = 0; i < COLORS.length && i < slots.length; i++) {
+        for (int i = 0; i < COLORS.length; i++) {
             ColorData color = COLORS[i];
             String colorName = color.name;
             String loreText = "&7Click to set color";
@@ -103,7 +104,7 @@ public class TextColorGUI extends BaseGUI {
         // Color slots
         int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29};
         
-        for (int i = 0; i < slots.length && i < COLORS.length; i++) {
+        for (int i = 0; i < slots.length; i++) {
             if (slot == slots[i]) {
                 applyColor(COLORS[i].textColor);
                 return;
@@ -126,10 +127,7 @@ public class TextColorGUI extends BaseGUI {
 
     private void applyColor(NamedTextColor color) {
         Component currentText = textDisplay.text();
-        if (currentText == null) {
-            currentText = Component.text("Text");
-        }
-        
+
         String plainText = PlainTextComponentSerializer.plainText().serialize(currentText);
         Component newText = Component.text(plainText).color(color);
         
@@ -140,10 +138,7 @@ public class TextColorGUI extends BaseGUI {
 
     private void toggleDecoration(TextDecoration decoration) {
         Component currentText = textDisplay.text();
-        if (currentText == null) {
-            currentText = Component.text("Text");
-        }
-        
+
         String plainText = PlainTextComponentSerializer.plainText().serialize(currentText);
         TextColor currentColor = currentText.color();
         
@@ -161,19 +156,24 @@ public class TextColorGUI extends BaseGUI {
 
     private void applyRainbow() {
         Component currentText = textDisplay.text();
-        if (currentText == null) {
-            currentText = Component.text("Text");
-        }
-        
+
         String plainText = PlainTextComponentSerializer.plainText().serialize(currentText);
         
         // Create rainbow text
+        Component rainbowText = getComponent(plainText);
+
+        textDisplay.text(rainbowText);
+        
+        player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
+    }
+
+    private static @NonNull Component getComponent(String plainText) {
         NamedTextColor[] rainbowColors = {
             NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.YELLOW,
             NamedTextColor.GREEN, NamedTextColor.AQUA, NamedTextColor.BLUE,
             NamedTextColor.LIGHT_PURPLE
         };
-        
+
         Component rainbowText = Component.empty();
         for (int i = 0; i < plainText.length(); i++) {
             NamedTextColor color = rainbowColors[i % rainbowColors.length];
@@ -181,10 +181,7 @@ public class TextColorGUI extends BaseGUI {
                 Component.text(String.valueOf(plainText.charAt(i))).color(color)
             );
         }
-        
-        textDisplay.text(rainbowText);
-        
-        player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
+        return rainbowText;
     }
 
     private record ColorData(Material material, String code, NamedTextColor textColor, String name) {}

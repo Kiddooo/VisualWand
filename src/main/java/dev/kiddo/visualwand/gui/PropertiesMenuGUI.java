@@ -33,7 +33,7 @@ public class PropertiesMenuGUI extends BaseGUI {
                 45,
                 Lang.getComponent("&8✦ &6Edit Properties")
         );
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
         addCommonProperties();
 
         if (display instanceof BlockDisplay blockDisplay) {

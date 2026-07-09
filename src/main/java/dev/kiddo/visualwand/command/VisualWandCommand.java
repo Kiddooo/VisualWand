@@ -9,6 +9,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ public class VisualWandCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, 
-                            @NotNull String label, @NotNull String[] args) {
+                            @NotNull String label, @NotNull String @NonNull [] args) {
         
         if (args.length == 0) {
             sendHelp(sender);
@@ -33,7 +34,6 @@ public class VisualWandCommand implements CommandExecutor, TabCompleter {
         String subCommand = args[0].toLowerCase();
 
         switch (subCommand) {
-            case "help" -> sendHelp(sender);
             case "reload" -> {
                 if (!sender.hasPermission("visualwand.admin")) {
                     sender.sendMessage(Lang.getPrefixed("&cYou don't have permission for this action!"));
@@ -74,7 +74,7 @@ public class VisualWandCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-                                                 @NotNull String label, @NotNull String[] args) {
+                                                 @NotNull String label, @NotNull String @NonNull [] args) {
         List<String> completions = new ArrayList<>();
         
         if (args.length == 1) {

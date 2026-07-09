@@ -25,7 +25,7 @@ public class AnimationMenuGUI extends BaseGUI {
     protected void createInventory() {
         inventory = Bukkit.createInventory(this, 36, Lang.getComponent("&8✦ &6Animations"));
         
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
         
         // Slow Rotation
         inventory.setItem(11, createItem(

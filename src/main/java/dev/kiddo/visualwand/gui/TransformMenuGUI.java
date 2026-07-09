@@ -35,7 +35,7 @@ public class TransformMenuGUI extends BaseGUI {
     protected void createInventory() {
         inventory = Bukkit.createInventory(this, 54, Lang.getComponent("&8✦ &6Transformations"));
         
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
         
         // === MOVEMENT BUTTONS ===
         // +X (Right)

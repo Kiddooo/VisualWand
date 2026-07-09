@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
 
 public class EditorSession {
 
@@ -101,21 +102,25 @@ public class EditorSession {
             case SCALE -> {
                 // Scale based on pitch movement
                 double scaleSpeed = plugin.getConfig().getDouble("editor.scale-sensitivity", 0.05);
-                Transformation current = display.getTransformation();
-                Vector3f scale = current.getScale();
-                
-                float scaleChange = (float) (-deltaPitch * scaleSpeed * 0.1);
-                float newScale = Math.max(0.1f, scale.x + scaleChange);
-                
-                Transformation newTransformation = new Transformation(
-                    current.getTranslation(),
-                    current.getLeftRotation(),
-                    new Vector3f(newScale, newScale, newScale),
-                    current.getRightRotation()
-                );
+                Transformation newTransformation = getTransformation(deltaPitch, scaleSpeed);
                 display.setTransformation(newTransformation);
             }
         }
+    }
+
+    private @NonNull Transformation getTransformation(double deltaPitch, double scaleSpeed) {
+        Transformation current = display.getTransformation();
+        Vector3f scale = current.getScale();
+
+        float scaleChange = (float) (-deltaPitch * scaleSpeed * 0.1);
+        float newScale = Math.max(0.1f, scale.x + scaleChange);
+
+        return new Transformation(
+            current.getTranslation(),
+            current.getLeftRotation(),
+            new Vector3f(newScale, newScale, newScale),
+            current.getRightRotation()
+        );
     }
 
     public void cancelTransformation() {

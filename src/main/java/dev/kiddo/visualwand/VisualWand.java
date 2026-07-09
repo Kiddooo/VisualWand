@@ -1,6 +1,7 @@
 package dev.kiddo.visualwand;
 
 import dev.kiddo.visualwand.animation.AnimationManager;
+
 import dev.kiddo.visualwand.command.VisualWandCommand;
 import dev.kiddo.visualwand.command.WandGiveCommand;
 import dev.kiddo.visualwand.editor.EditorManager;

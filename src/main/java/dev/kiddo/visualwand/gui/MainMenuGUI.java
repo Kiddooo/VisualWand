@@ -5,6 +5,7 @@ import java.util.List;
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import dev.kiddo.visualwand.util.RayTraceUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,7 +24,7 @@ public class MainMenuGUI extends BaseGUI {
     protected void createInventory() {
         inventory = Bukkit.createInventory(this, 27, Lang.getComponent("&8✦ &6VisualWand &8- &fMain Menu"));
         
-        fillBorder(Material.GRAY_STAINED_GLASS_PANE);
+        fillBorder();
         
         // Block Display
         inventory.setItem(11, createItem(
@@ -80,7 +81,7 @@ public class MainMenuGUI extends BaseGUI {
                 .add(0.5D, 0.0D, 0.5D);
 
         player.getWorld().spawn(spawnLocation, TextDisplay.class, textDisplay -> {
-            textDisplay.text(net.kyori.adventure.text.Component.text("Click to edit"));
+            textDisplay.text(Component.text("Click to edit"));
             textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
 

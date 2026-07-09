@@ -23,7 +23,7 @@ import org.joml.Vector3f;
 
 /**
  * Shared helpers for display property controls.
- *
+
  * The property menu needs a few calculations that are not GUI-specific: clean
  * numeric formatting, display orientation presets, and collision-surface
  * snapping. Keeping those details here keeps PropertiesMenuGUI focused on menu
@@ -78,7 +78,7 @@ public final class DisplayPropertyUtil {
 
     /**
      * Applies the item orientation preset used by the property menu.
-     *
+
      * Left-click lays the item flat. Right-click restores an upright NONE-preset
      * orientation. Shift-click also snaps the item to the surface below after the
      * orientation change.
@@ -110,7 +110,7 @@ public final class DisplayPropertyUtil {
 
     /**
      * Snaps a block or item display to the first collision surface below it.
-     *
+
      * Left-click keeps the current horizontal position. Right-click centres the
      * display on the supporting block after the surface has been resolved.
      *
@@ -386,13 +386,6 @@ public final class DisplayPropertyUtil {
         return new Vector3f(vector.x, vector.y, vector.z);
     }
 
-    private static final class Surface {
-        private final Block block;
-        private final double y;
-
-        private Surface(Block block, double y) {
-            this.block = block;
-            this.y = y;
-        }
+    private record Surface(Block block, double y) {
     }
 }

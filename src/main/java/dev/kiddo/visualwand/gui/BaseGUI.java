@@ -73,8 +73,8 @@ public abstract class BaseGUI implements InventoryHolder {
         return item;
     }
 
-    protected void fillBorder(Material material) {
-        ItemStack border = createItem(material, Component.empty());
+    protected void fillBorder() {
+        ItemStack border = createItem(Material.GRAY_STAINED_GLASS_PANE, Component.empty());
         int size = inventory.getSize();
         int rows = size / 9;
         
