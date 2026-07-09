@@ -60,8 +60,8 @@ public class EditMenuGUI extends BaseGUI {
         
         inventory.setItem(22, createItem(
             gizmoActive ? Material.GLOWSTONE : Material.REDSTONE_LAMP,
-            "&6✦ Toggle Gizmo",
-            Lang.colorizeList(List.of("&7", "&fEnables/disables visual gizmo.", "&7Currently: &e{status}", "&7", "&eClick to toggle!")).stream()
+            "&6✦ Gizmo (3D Editor)",
+            Lang.colorizeList(List.of("&7", "&fShows colored 3D arrows and handles around", "&fthe object to move, rotate, or scale it", "&fdirectly in the world.", "&7Currently: &e{status}", "&7", "&eClick to toggle!")).stream()
                 .map(line -> line.replace("{status}", gizmoStatus))
                 .toList()
         ));

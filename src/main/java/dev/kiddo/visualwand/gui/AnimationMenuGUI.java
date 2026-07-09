@@ -68,25 +68,25 @@ public class AnimationMenuGUI extends BaseGUI {
             case 11 -> {
                 // Slow rotation
                 plugin.getAnimationManager().startAnimation(display, AnimationType.ROTATION);
-                player.sendMessage(Lang.getPrefixed("&aCreated new object: &eSlow Rotation"));
+                player.sendMessage(Lang.getPrefixed("&aApplied animation: &eSlow Rotation"));
                 player.closeInventory();
             }
             case 13 -> {
                 // Levitation
                 plugin.getAnimationManager().startAnimation(display, AnimationType.LEVITATION);
-                player.sendMessage(Lang.getPrefixed("&aCreated new object: &eLevitation"));
+                player.sendMessage(Lang.getPrefixed("&aApplied animation: &eLevitation"));
                 player.closeInventory();
             }
             case 15 -> {
                 // Pulsing
                 plugin.getAnimationManager().startAnimation(display, AnimationType.SCALE);
-                player.sendMessage(Lang.getPrefixed("&aCreated new object: &ePulsing"));
+                player.sendMessage(Lang.getPrefixed("&aApplied animation: &ePulsing"));
                 player.closeInventory();
             }
             case 22 -> {
                 // Stop animation
                 plugin.getAnimationManager().stopAnimation(display);
-                player.sendMessage(Lang.getPrefixed("&aChanges saved!"));
+                player.sendMessage(Lang.getPrefixed("&cAnimation stopped!"));
                 player.closeInventory();
             }
             case 27 -> {

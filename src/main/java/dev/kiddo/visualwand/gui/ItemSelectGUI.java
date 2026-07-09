@@ -59,14 +59,14 @@ public class ItemSelectGUI extends BaseGUI {
         
         // Navigation buttons
         if (page > 0) {
-            inventory.setItem(45, createItem(Material.ARROW, "&a« Poprzednia strona"));
+            inventory.setItem(45, createItem(Material.ARROW, "&a← Previous page"));
         }
         
         inventory.setItem(49, getCloseButton());
         
         
         if (endIndex < items.size()) {
-            inventory.setItem(53, createItem(Material.ARROW, "&aNastępna strona »"));
+            inventory.setItem(53, createItem(Material.ARROW, "&aNext page →"));
         }
     }
 
