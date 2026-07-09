@@ -8,6 +8,7 @@ import dev.kiddo.visualwand.gui.EditMenuGUI;
 import dev.kiddo.visualwand.gui.BaseGUI;
 import dev.kiddo.visualwand.gui.MainMenuGUI;
 import dev.kiddo.visualwand.util.Lang;
+import net.kyori.adventure.text.Component;
 import dev.kiddo.visualwand.util.RayTraceUtil;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -239,7 +240,7 @@ public final class WandListener implements Listener {
             if (player.isSneaking()) {
                 gizmoManager.stopGizmo(player);
                 plugin.getEditorManager().removeSession(player);
-                player.sendActionBar(Lang.colorize("&eGizmo mode disabled."));
+                player.sendActionBar(Lang.getComponent("&eGizmo mode disabled."));
                 player.sendMessage(Lang.getPrefixed("&eGizmo mode disabled."));
             } else {
                 startTransformation(player, gizmo);
@@ -331,7 +332,7 @@ public final class WandListener implements Listener {
                     : "&eMovement targeting: &fAIR"));
         } else if (session.mode == GizmoMode.ROTATE) {
             session.axis = session.axis.next();
-            player.sendMessage(Lang.getPrefixed("&eRotation axis: " + localizedAxis(session.axis) + "&e."));
+            player.sendMessage(Lang.getPrefixed("&eRotation axis: ").append(localizedAxis(session.axis)).append(Lang.getComponent("&e.")));
         }
 
         sendActionBar(player, session);
@@ -398,7 +399,7 @@ public final class WandListener implements Listener {
             player.sendMessage(Lang.getPrefixed("&aScale started. &fUse the mouse wheel to resize; crouch + wheel uses the fine increment; right-click confirms; crouch + right-click cancels."));
         } else {
             session.axis = initialRotationAxis;
-            player.sendMessage(Lang.getPrefixed("&aRotate started on " + localizedAxis(session.axis) + "&a. &fUse the mouse wheel to rotate; press Q to cycle axes; crouch + wheel uses the fine increment; right-click confirms; crouch + right-click cancels."));
+            player.sendMessage(Lang.getPrefixed("&aRotate started on ").append(localizedAxis(session.axis)).append(Lang.getComponent("&a. &fUse the mouse wheel to rotate; press Q to cycle axes; crouch + wheel uses the fine increment; right-click confirms; crouch + right-click cancels.")));
         }
 
         sessions.put(player.getUniqueId(), session);
@@ -604,17 +605,17 @@ public final class WandListener implements Listener {
                 modeSegment = "&eAIR";
             }
 
-            player.sendActionBar(Lang.colorize("&6MOVE &8| &f" + format(session.distance) + " blocks &8| " + modeSegment + " &8| &fWheel: depth &8| &fCrouch + wheel: fine step &8| &fQ: target mode &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
+            player.sendActionBar(Lang.getComponent("&6MOVE &8| &f" + format(session.distance) + " blocks &8| " + modeSegment + " &8| &fWheel: depth &8| &fCrouch + wheel: fine step &8| &fQ: target mode &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
             return;
         }
 
         if (session.mode == GizmoMode.SCALE) {
             Vector3f scale = session.display.getTransformation().getScale();
-            player.sendActionBar(Lang.colorize("&6SCALE &8| &fX " + format(scale.x) + "  Y " + format(scale.y) + "  Z " + format(scale.z) + " &8| &fWheel: size &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
+            player.sendActionBar(Lang.getComponent("&6SCALE &8| &fX " + format(scale.x) + "  Y " + format(scale.y) + "  Z " + format(scale.z) + " &8| &fWheel: size &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
             return;
         }
 
-        player.sendActionBar(Lang.colorize("&6ROTATE &8| " + localizedAxis(session.axis) + " axis &8| &f" + formatAngle(session.rotationDegrees) + " &8| &fWheel: rotate &8| &fQ: axis &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
+        player.sendActionBar(Lang.getComponent("&6ROTATE &8| " + localizedAxis(session.axis) + " axis &8| &f" + formatAngle(session.rotationDegrees) + " &8| &fWheel: rotate &8| &fQ: axis &8| &fCrouch + wheel: fine step &8| &aRMB: save &8| &cCrouch + RMB: cancel"));
     }
 
     /** Commits the current state, restores the original glow value, and resumes the gizmo. */
@@ -623,7 +624,7 @@ public final class WandListener implements Listener {
         restoreGlow(session);
         resumeGizmo(player, session);
         if (sendMessage) {
-            player.sendActionBar(Lang.colorize("&aTransformation saved."));
+            player.sendActionBar(Lang.getComponent("&aTransformation saved."));
             player.sendMessage(Lang.getPrefixed("&aTransformation confirmed."));
         }
     }
@@ -644,7 +645,7 @@ public final class WandListener implements Listener {
             resumeGizmo(player, session);
         }
         if (sendMessage) {
-            player.sendActionBar(Lang.colorize("&eTransformation cancelled."));
+            player.sendActionBar(Lang.getComponent("&eTransformation cancelled."));
             player.sendMessage(Lang.getPrefixed("&eTransformation cancelled."));
         }
     }
@@ -722,11 +723,11 @@ public final class WandListener implements Listener {
      * @param axis axis whose label should be displayed
      * @return colourized language value for the axis
      */
-    private String localizedAxis(Axis axis) {
+    private Component localizedAxis(Axis axis) {
         return switch (axis) {
-            case X -> Lang.colorize("&cX");
-            case Y -> Lang.colorize("&2Y");
-            default -> Lang.colorize("&9Z");
+            case X -> Lang.getComponent("&cX");
+            case Y -> Lang.getComponent("&2Y");
+            default -> Lang.getComponent("&9Z");
         };
     }
 
@@ -1208,21 +1209,21 @@ public final class WandListener implements Listener {
      * @param distance distance from the player's eye to the display entity
      * @return localized and colourized target description
      */
-    private String describeDisplay(Display display, double distance) {
+    private Component describeDisplay(Display display, double distance) {
         String formattedDistance = format(distance);
         if (display instanceof BlockDisplay blockDisplay) {
-            return Lang.colorize("&fBlock display: &e" + blockDisplay.getBlock().getMaterial().name() + " &8| &f" + formattedDistance + " blocks");
+            return Lang.getComponent("&fBlock display: &e" + blockDisplay.getBlock().getMaterial().name() + " &8| &f" + formattedDistance + " blocks");
         }
 
         if (display instanceof ItemDisplay itemDisplay) {
-            return Lang.colorize("&fItem display: &e" + itemDisplay.getItemStack().getType().name() + " &8| &f" + formattedDistance + " blocks");
+            return Lang.getComponent("&fItem display: &e" + itemDisplay.getItemStack().getType().name() + " &8| &f" + formattedDistance + " blocks");
         }
 
         if (display instanceof TextDisplay) {
-            return Lang.colorize("&fText display &8| &f" + formattedDistance + " blocks");
+            return Lang.getComponent("&fText display &8| &f" + formattedDistance + " blocks");
         }
 
-        return Lang.colorize("&fDisplay &8| &f" + formattedDistance + " blocks");
+        return Lang.getComponent("&fDisplay &8| &f" + formattedDistance + " blocks");
     }
 
     /**
@@ -1313,7 +1314,7 @@ public final class WandListener implements Listener {
         player.sendMessage(Lang.getPrefixed(targetChanged
                 ? "&eDelete target changed. &fCrouch + right-click again within &e" + seconds + "s &fto confirm deleting " + type + "."
                 : "&cDelete " + type + "? &fCrouch + right-click again within &e" + seconds + "s &fto confirm."));
-        player.sendActionBar(Lang.colorize("&cDelete armed &8| &f" + type + " &8| &fCrouch + right-click again within &e" + seconds + "s"));
+        player.sendActionBar(Lang.getComponent("&cDelete armed &8| &f" + type + " &8| &fCrouch + right-click again within &e" + seconds + "s"));
     }
 
     /**

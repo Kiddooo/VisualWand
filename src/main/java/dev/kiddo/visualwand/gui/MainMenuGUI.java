@@ -21,29 +21,29 @@ public class MainMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 27, Lang.colorize("&8✦ &6VisualWand &8- &fMain Menu"));
+        inventory = Bukkit.createInventory(this, 27, Lang.getComponent("&8✦ &6VisualWand &8- &fMain Menu"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // Block Display
         inventory.setItem(11, createItem(
             Material.BRICKS,
-            "&e✦ Block Display",
-            Lang.colorizeList(List.of("&7", "&fCreates a block display.", "&7Perfect for decorations and builds.", "&7", "&aClick to create!"))
+            Lang.getComponent("&e✦ Block Display"),
+            Lang.getComponents(List.of("&7", "&fCreates a block display.", "&7Perfect for decorations and builds.", "&7", "&aClick to create!"))
         ));
         
         // Item Display
         inventory.setItem(13, createItem(
             Material.DIAMOND,
-            "&b✦ Item Display",
-            Lang.colorizeList(List.of("&7", "&fCreates an item display.", "&7", "&aClick to create!"))
+            Lang.getComponent("&b✦ Item Display"),
+            Lang.getComponents(List.of("&7", "&fCreates an item display.", "&7", "&aClick to create!"))
         ));
         
         // Text Display
         inventory.setItem(15, createItem(
             Material.OAK_SIGN,
-            "&a✦ Text Display",
-            Lang.colorizeList(List.of("&7", "&fCreates a text display.", "&7Supports colors and formatting.", "&7", "&aClick to create!"))
+            Lang.getComponent("&a✦ Text Display"),
+            Lang.getComponents(List.of("&7", "&fCreates a text display.", "&7Supports colors and formatting.", "&7", "&aClick to create!"))
         ));
         
         // Close button

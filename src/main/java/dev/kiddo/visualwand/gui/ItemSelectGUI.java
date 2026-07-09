@@ -42,7 +42,7 @@ public class ItemSelectGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 54, Lang.colorize("&8✦ &6Select Item"));
+        inventory = Bukkit.createInventory(this, 54, Lang.getComponent("&8✦ &6Select Item"));
         populateItems();
     }
 
@@ -59,14 +59,14 @@ public class ItemSelectGUI extends BaseGUI {
         
         // Navigation buttons
         if (page > 0) {
-            inventory.setItem(45, createItem(Material.ARROW, "&a← Previous page"));
+            inventory.setItem(45, createItem(Material.ARROW, Lang.getComponent("&a← Previous page")));
         }
         
         inventory.setItem(49, getCloseButton());
         
         
         if (endIndex < items.size()) {
-            inventory.setItem(53, createItem(Material.ARROW, "&aNext page →"));
+            inventory.setItem(53, createItem(Material.ARROW, Lang.getComponent("&aNext page →")));
         }
     }
 

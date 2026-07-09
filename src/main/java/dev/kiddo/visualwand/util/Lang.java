@@ -2,30 +2,25 @@ package dev.kiddo.visualwand.util;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
 
 import java.util.List;
 
 public class Lang {
 
-    public static final String PREFIX = ChatColor.translateAlternateColorCodes('&', "&8[&6VisualWand&8] ");
     private static final LegacyComponentSerializer legacySerializer = LegacyComponentSerializer.legacyAmpersand();
+    private static final Component PREFIX = legacySerializer.deserialize("&8[&6VisualWand&8] ");
 
-    public static String getPrefixed(String message) {
-        return PREFIX + ChatColor.translateAlternateColorCodes('&', message);
-    }
-
-    public static String colorize(String text) {
-        return ChatColor.translateAlternateColorCodes('&', text);
+    public static Component getPrefixed(String message) {
+        return PREFIX.append(legacySerializer.deserialize(message));
     }
 
     public static Component getComponent(String text) {
         return legacySerializer.deserialize(text);
     }
 
-    public static List<String> colorizeList(List<String> lore) {
+    public static List<Component> getComponents(List<String> lore) {
         return lore.stream()
-                .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                .<Component>map(legacySerializer::deserialize)
                 .toList();
     }
 }

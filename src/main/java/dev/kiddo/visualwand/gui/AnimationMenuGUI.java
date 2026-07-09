@@ -23,36 +23,36 @@ public class AnimationMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 36, Lang.colorize("&8✦ &6Animations"));
+        inventory = Bukkit.createInventory(this, 36, Lang.getComponent("&8✦ &6Animations"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // Slow Rotation
         inventory.setItem(11, createItem(
             Material.ENDER_PEARL,
-            "&e✦ Slow Rotation",
-            Lang.colorizeList(List.of("&7", "&fObject rotates slowly.", "&7Perfect for trophies and lootboxes.", "&7", "&aClick to apply!"))
+            Lang.getComponent("&e✦ Slow Rotation"),
+            Lang.getComponents(List.of("&7", "&fObject rotates slowly.", "&7Perfect for trophies and lootboxes.", "&7", "&aClick to apply!"))
         ));
         
         // Levitation
         inventory.setItem(13, createItem(
             Material.FEATHER,
-            "&b✦ Levitation",
-            Lang.colorizeList(List.of("&7", "&fObject floats up and down.", "&7Great effect for signposts.", "&7", "&aClick to apply!"))
+            Lang.getComponent("&b✦ Levitation"),
+            Lang.getComponents(List.of("&7", "&fObject floats up and down.", "&7Great effect for signposts.", "&7", "&aClick to apply!"))
         ));
         
         // Pulsing
         inventory.setItem(15, createItem(
             Material.HEART_OF_THE_SEA,
-            "&d✦ Pulsing",
-            Lang.colorizeList(List.of("&7", "&fObject pulses (changes size).", "&7Attracts player attention!", "&7", "&aClick to apply!"))
+            Lang.getComponent("&d✦ Pulsing"),
+            Lang.getComponents(List.of("&7", "&fObject pulses (changes size).", "&7Attracts player attention!", "&7", "&aClick to apply!"))
         ));
         
         // Stop animation
         inventory.setItem(22, createItem(
             Material.BARRIER,
-            "&c✖ Stop Animation",
-            Lang.colorizeList(List.of("&7", "&fStops the current animation.", "&7", "&cClick to stop!"))
+            Lang.getComponent("&c✖ Stop Animation"),
+            Lang.getComponents(List.of("&7", "&fStops the current animation.", "&7", "&cClick to stop!"))
         ));
         
         // Back button

@@ -62,13 +62,13 @@ public class VisualWandCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage("");
-        sender.sendMessage(Lang.colorize("&6&l✦ VisualWand Help ✦"));
+        sender.sendMessage(Lang.getComponent("&6&l✦ VisualWand Help ✦"));
         sender.sendMessage("");
-        sender.sendMessage(Lang.colorize("&e/vw wand &8- &7Get the Architect's Wand"));
-        sender.sendMessage(Lang.colorize("&e/vw reload &8- &7Reload configuration"));
-        sender.sendMessage(Lang.colorize("&e/vw help &8- &7Show this help"));
+        sender.sendMessage(Lang.getComponent("&e/vw wand &8- &7Get the Architect's Wand"));
+        sender.sendMessage(Lang.getComponent("&e/vw reload &8- &7Reload configuration"));
+        sender.sendMessage(Lang.getComponent("&e/vw help &8- &7Show this help"));
         sender.sendMessage("");
-        sender.sendMessage(Lang.colorize("&7Use the &eArchitect's Wand &7to create and edit objects!"));
+        sender.sendMessage(Lang.getComponent("&7Use the &eArchitect's Wand &7to create and edit objects!"));
         sender.sendMessage("");
     }
 

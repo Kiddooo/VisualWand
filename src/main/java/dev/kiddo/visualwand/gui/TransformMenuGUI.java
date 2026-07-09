@@ -33,106 +33,112 @@ public class TransformMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        inventory = Bukkit.createInventory(this, 54, Lang.colorize("&8✦ &6Transformations"));
+        inventory = Bukkit.createInventory(this, 54, Lang.getComponent("&8✦ &6Transformations"));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
         // === MOVEMENT BUTTONS ===
         // +X (Right)
         inventory.setItem(11, createItem(Material.RED_CONCRETE, 
-            "&c+X &7(Right)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&c+X &7(Right)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // -X (Left)
         inventory.setItem(10, createItem(Material.RED_STAINED_GLASS, 
-            "&c-X &7(Left)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&c-X &7(Left)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // +Y (Up)
         inventory.setItem(4, createItem(Material.LIME_CONCRETE, 
-            "&a+Y &7(Up)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&a+Y &7(Up)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // -Y (Down)
         inventory.setItem(22, createItem(Material.LIME_STAINED_GLASS, 
-            "&a-Y &7(Down)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&a-Y &7(Down)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // +Z (Forward)
         inventory.setItem(13, createItem(Material.BLUE_CONCRETE, 
-            "&9+Z &7(Forward)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&9+Z &7(Forward)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // -Z (Backward)
         inventory.setItem(12, createItem(Material.BLUE_STAINED_GLASS, 
-            "&9-Z &7(Backward)",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&9-Z &7(Backward)"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // === ROTATION BUTTONS ===
         // Rotate X
         inventory.setItem(29, createItem(Material.RED_WOOL, 
-            "&cRotate X",
-            "&7Click: +15°", "&7Right-Click: -15°", "&7Shift+Click: +5°", "&7Shift+Right: -5°"));
+            Lang.getComponent("&cRotate X"),
+            Lang.getComponent("&7Click: +15°"), Lang.getComponent("&7Right-Click: -15°"), Lang.getComponent("&7Shift+Click: +5°"), Lang.getComponent("&7Shift+Right: -5°")));
         
         // Rotate Y
         inventory.setItem(30, createItem(Material.LIME_WOOL, 
-            "&aRotate Y",
-            "&7Click: +15°", "&7Right-Click: -15°", "&7Shift+Click: +5°", "&7Shift+Right: -5°"));
+            Lang.getComponent("&aRotate Y"),
+            Lang.getComponent("&7Click: +15°"), Lang.getComponent("&7Right-Click: -15°"), Lang.getComponent("&7Shift+Click: +5°"), Lang.getComponent("&7Shift+Right: -5°")));
         
         // Rotate Z
         inventory.setItem(31, createItem(Material.BLUE_WOOL, 
-            "&9Rotate Z",
-            "&7Click: +15°", "&7Right-Click: -15°", "&7Shift+Click: +5°", "&7Shift+Right: -5°"));
+            Lang.getComponent("&9Rotate Z"),
+            Lang.getComponent("&7Click: +15°"), Lang.getComponent("&7Right-Click: -15°"), Lang.getComponent("&7Shift+Click: +5°"), Lang.getComponent("&7Shift+Right: -5°")));
         
         // Reset rotation
         inventory.setItem(32, createItem(Material.PURPLE_CONCRETE, 
-            "&7⟲ Reset Rotation"));
+            Lang.getComponent("&7⟲ Reset Rotation")));
         
         // === SCALE BUTTONS ===
         // Scale up
         inventory.setItem(15, createItem(Material.YELLOW_CONCRETE, 
-            "&e↑ Scale Up",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&e↑ Scale Up"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // Scale down
         inventory.setItem(16, createItem(Material.YELLOW_STAINED_GLASS, 
-            "&e↓ Scale Down",
-            "&7Shift+Click: Fine (x0.5)", "&7Click: Normal (x1)", "&7Right-Click: Coarse (x5)"));
+            Lang.getComponent("&e↓ Scale Down"),
+            Lang.getComponent("&7Shift+Click: Fine (x0.5)"), Lang.getComponent("&7Click: Normal (x1)"), Lang.getComponent("&7Right-Click: Coarse (x5)")));
         
         // Reset scale
         inventory.setItem(24, createItem(Material.ORANGE_CONCRETE, 
-            "&7⟲ Reset Scale"));
+            Lang.getComponent("&7⟲ Reset Scale")));
         
         // === GIZMO TOGGLE ===
         boolean gizmoActive = plugin.getGizmoManager().hasActiveGizmo(player);
-        String gizmoStatus = gizmoActive ? 
-            "&aEnabled" : 
+        String gizmoStatus = gizmoActive ?
+            "&aEnabled" :
             "&cDisabled";
-        
+
         inventory.setItem(40, createItem(
             gizmoActive ? Material.GLOWSTONE : Material.REDSTONE_LAMP,
-            "&6✦ Gizmo (3D Editor)",
-            Lang.colorizeList(List.of("&7", "&fShows colored 3D arrows and handles around", "&fthe object to move, rotate, or scale it", "&fdirectly in the world.", "&7Currently: &e{status}", "&7", "&eClick to toggle!")).stream()
-                .map(line -> line.replace("{status}", gizmoStatus))
-                .toList()
+            Lang.getComponent("&6✦ Gizmo (3D Editor)"),
+            Lang.getComponents(List.of(
+                "&7",
+                "&fShows colored 3D arrows and handles around",
+                "&fthe object to move, rotate, or scale it",
+                "&fdirectly in the world.",
+                "&7Currently: &e" + gizmoStatus,
+                "&7",
+                "&eClick to toggle!"
+            ))
         ));
-        
+
         // Gizmo mode buttons (if gizmo is active)
         if (gizmoActive) {
-            inventory.setItem(38, createItem(Material.COMPASS, 
-                "&eMode: &fMove",
-                "&7Shows directional arrows to move the object.",
-                "&7Left-click in-world to switch modes."));
-            
-            inventory.setItem(39, createItem(Material.RECOVERY_COMPASS, 
-                "&eMode: &fRotate",
-                "&7Shows circular handles to rotate the object.",
-                "&7Left-click in-world to switch modes."));
-            
-            inventory.setItem(41, createItem(Material.SPYGLASS, 
-                "&eMode: &fScale",
-                "&7Shows cube handles to scale the object.",
-                "&7Left-click in-world to switch modes."));
+            inventory.setItem(38, createItem(Material.COMPASS,
+                Lang.getComponent("&eMode: &fMove"),
+                Lang.getComponent("&7Shows directional arrows to move the object."),
+                Lang.getComponent("&7Left-click in-world to switch modes.")));
+
+            inventory.setItem(39, createItem(Material.RECOVERY_COMPASS,
+                Lang.getComponent("&eMode: &fRotate"),
+                Lang.getComponent("&7Shows circular handles to rotate the object."),
+                Lang.getComponent("&7Left-click in-world to switch modes.")));
+
+            inventory.setItem(41, createItem(Material.SPYGLASS,
+                Lang.getComponent("&eMode: &fScale"),
+                Lang.getComponent("&7Shows cube handles to scale the object."),
+                Lang.getComponent("&7Left-click in-world to switch modes.")));
         }
         
         // Back button

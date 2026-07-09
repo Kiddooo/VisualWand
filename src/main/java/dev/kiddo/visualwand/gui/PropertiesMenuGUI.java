@@ -5,6 +5,7 @@ import java.util.List;
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.DisplayPropertyUtil;
 import dev.kiddo.visualwand.util.Lang;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -30,7 +31,7 @@ public class PropertiesMenuGUI extends BaseGUI {
         inventory = Bukkit.createInventory(
                 this,
                 45,
-                Lang.colorize("&8✦ &6Edit Properties")
+                Lang.getComponent("&8✦ &6Edit Properties")
         );
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         addCommonProperties();
@@ -51,26 +52,26 @@ public class PropertiesMenuGUI extends BaseGUI {
         Display.Billboard billboard = display.getBillboard();
         inventory.setItem(10, createItem(
                 Material.PLAYER_HEAD,
-                "&eBillboard: &f" + billboard.name(),
-                Lang.colorizeList(List.of("&7", "&fDetermines how object rotates towards player.", "&7FIXED - Does not rotate", "&7VERTICAL - Rotates vertically", "&7HORIZONTAL - Rotates horizontally", "&7CENTER - Always faces the player", "&7", "&eClick to change!"))
+                Lang.getComponent("&eBillboard: &f" + billboard.name()),
+                Lang.getComponents(List.of("&7", "&fDetermines how object rotates towards player.", "&7FIXED - Does not rotate", "&7VERTICAL - Rotates vertically", "&7HORIZONTAL - Rotates horizontally", "&7CENTER - Always faces the player", "&7", "&eClick to change!"))
         ));
 
         inventory.setItem(11, createItem(
                 Material.GLOWSTONE_DUST,
-                "&eGlow",
-                Lang.colorizeList(List.of("&7", "&fToggle the object's glow effect.", "&7", "&eClick to toggle!"))
+                Lang.getComponent("&eGlow"),
+                Lang.getComponents(List.of("&7", "&fToggle the object's glow effect.", "&7", "&eClick to toggle!"))
         ));
 
         inventory.setItem(12, createItem(
                 Material.SPYGLASS,
-                "&eView Range: &f" + DisplayPropertyUtil.formatViewRange(display.getViewRange()),
-                Lang.colorizeList(List.of("&7", "&fHow far the object is visible.", "&7Value is a multiplier; 1 is roughly 64 blocks.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
+                Lang.getComponent("&eView Range: &f" + DisplayPropertyUtil.formatViewRange(display.getViewRange())),
+                Lang.getComponents(List.of("&7", "&fHow far the object is visible.", "&7Value is a multiplier; 1 is roughly 64 blocks.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
         );
 
         inventory.setItem(13, createItem(
                 Material.BLACK_CONCRETE,
-                "&eShadow: &f" + DisplayPropertyUtil.formatNumber(display.getShadowRadius()),
-                Lang.colorizeList(List.of("&7", "&fShadow radius under the object.", "&7Values are rounded to clean 0.1 increments.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
+                Lang.getComponent("&eShadow: &f" + DisplayPropertyUtil.formatNumber(display.getShadowRadius())),
+                Lang.getComponents(List.of("&7", "&fShadow radius under the object.", "&7Values are rounded to clean 0.1 increments.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
         );
 
         String brightnessValue;
@@ -80,7 +81,7 @@ public class PropertiesMenuGUI extends BaseGUI {
             brightnessValue = display.getBrightness().getBlockLight() + "/15";
         }
 
-        List<String> brightnessLore = Lang.colorizeList(List.of(
+        List<Component> brightnessLore = Lang.getComponents(List.of(
                 "&7", "&fOverrides the light level on this display.",
                 "&7Range: 0 (dark) to 15 (full bright).",
                 "&7", "&7Current: " + brightnessValue,
@@ -89,44 +90,44 @@ public class PropertiesMenuGUI extends BaseGUI {
 
         inventory.setItem(14, createItem(
                 Material.LANTERN,
-                "&eBrightness: &f" + brightnessValue,
+                Lang.getComponent("&eBrightness: &f" + brightnessValue),
                 brightnessLore
         ));
         if (display instanceof BlockDisplay || display instanceof ItemDisplay) {
             inventory.setItem(15, createItem(
                     Material.MOSS_CARPET,
-                    "&aPlace on Surface",
-                    Lang.colorizeList(List.of("&7", "&fMoves this display vertically onto the", "&ffirst collision surface below it.", "&7Rotation and item pose are unchanged.", "&7", "&eLMB: &fkeep horizontal position", "&eRMB: &fcentre on supporting block"))
+                    Lang.getComponent("&aPlace on Surface"),
+                    Lang.getComponents(List.of("&7", "&fMoves this display vertically onto the", "&ffirst collision surface below it.", "&7Rotation and item pose are unchanged.", "&7", "&eLMB: &fkeep horizontal position", "&eRMB: &fcentre on supporting block"))
             ));
         }
     }
 
     private void addBlockDisplayProperties(BlockDisplay blockDisplay) {
-        List<String> lore = Lang.colorizeList(List.of("&7", "&fCurrent: &e" + blockDisplay.getBlock().getMaterial().name(), "&7", "&eClick to change!"));
+        List<Component> lore = Lang.getComponents(List.of("&7", "&fCurrent: &e" + blockDisplay.getBlock().getMaterial().name(), "&7", "&eClick to change!"));
 
         inventory.setItem(20, createItem(
                 Material.BRICKS,
-                "&eChange Block",
+                Lang.getComponent("&eChange Block"),
                 lore
         ));
     }
 
     private void addItemDisplayProperties(ItemDisplay itemDisplay) {
         ItemStack itemStack = itemDisplay.getItemStack();
-        Material material = itemStack != null ? itemStack.getType() : Material.STONE;
+        Material material = itemStack.getType();
 
-        List<String> itemLore = Lang.colorizeList(List.of("&7", "&fCurrent: &e" + material.name(), "&7", "&eClick to change!"));
+        List<Component> itemLore = Lang.getComponents(List.of("&7", "&fCurrent: &e" + material.name(), "&7", "&eClick to change!"));
 
         inventory.setItem(20, createItem(
                 material,
-                "&eChange Item",
+                Lang.getComponent("&eChange Item"),
                 itemLore
         ));
 
         inventory.setItem(21, createItem(
                 Material.HEAVY_WEIGHTED_PRESSURE_PLATE,
-                "&eItem Preset: &f" + itemDisplay.getItemDisplayTransform().name(),
-                Lang.colorizeList(List.of("&7", "&fPreset item display orientation.", "&7Applies the preset and places the item", "&7onto the surface below.", "&7", "&eLMB: &flay flat and place on surface", "&eRMB: &fstand upright"))
+                Lang.getComponent("&eItem Preset: &f" + itemDisplay.getItemDisplayTransform().name()),
+                Lang.getComponents(List.of("&7", "&fPreset item display orientation.", "&7Applies the preset and places the item", "&7onto the surface below.", "&7", "&eLMB: &flay flat and place on surface", "&eRMB: &fstand upright"))
         ));
 
     }
@@ -134,14 +135,14 @@ public class PropertiesMenuGUI extends BaseGUI {
     private void addTextDisplayProperties(TextDisplay textDisplay) {
         inventory.setItem(20, createItem(
                 Material.OAK_SIGN,
-                "&eChange Text",
-                Lang.colorizeList(List.of("&7", "&fClick and type new text in chat.", "&7", "&eClick to change!"))
+                Lang.getComponent("&eChange Text"),
+                Lang.getComponents(List.of("&7", "&fClick and type new text in chat.", "&7", "&eClick to change!"))
         ));
 
         inventory.setItem(21, createItem(
                 Material.ORANGE_DYE,
-                "&eText Color",
-                Lang.colorizeList(List.of("&7", "&fChange text color and formatting.", "&7", "&eClick to open!"))
+                Lang.getComponent("&eText Color"),
+                Lang.getComponents(List.of("&7", "&fChange text color and formatting.", "&7", "&eClick to open!"))
         ));
 
         String background = textDisplay.getBackgroundColor() == null
@@ -150,8 +151,8 @@ public class PropertiesMenuGUI extends BaseGUI {
 
         inventory.setItem(22, createItem(
                 Material.BLACK_DYE,
-                "&eBackground: &f" + background,
-                Lang.colorizeList(List.of("&7", "&fToggle text background.", "&7", "&eClick to toggle!"))
+                Lang.getComponent("&eBackground: &f" + background),
+                Lang.getComponents(List.of("&7", "&fToggle text background.", "&7", "&eClick to toggle!"))
         ));
 
         String seeThrough = textDisplay.isSeeThrough()
@@ -160,20 +161,20 @@ public class PropertiesMenuGUI extends BaseGUI {
 
         inventory.setItem(23, createItem(
                 Material.GLASS_PANE,
-                "&eSee Through: &f" + seeThrough,
-                Lang.colorizeList(List.of("&7", "&fWhether text is visible through blocks.", "&7", "&eClick to toggle!"))
+                Lang.getComponent("&eSee Through: &f" + seeThrough),
+                Lang.getComponents(List.of("&7", "&fWhether text is visible through blocks.", "&7", "&eClick to toggle!"))
         ));
 
         inventory.setItem(24, createItem(
                 Material.PAPER,
-                "&eLine Width: &f" + textDisplay.getLineWidth(),
-                Lang.colorizeList(List.of("&7", "&fMaximum line width of text.", "&7", "&eLMB: +10 | RMB: -10"))
+                Lang.getComponent("&eLine Width: &f" + textDisplay.getLineWidth()),
+                Lang.getComponents(List.of("&7", "&fMaximum line width of text.", "&7", "&eLMB: +10 | RMB: -10"))
         ));
 
         inventory.setItem(25, createItem(
                 Material.TINTED_GLASS,
-                "&eText Opacity",
-                Lang.colorizeList(List.of("&7", "&fSet text opacity.", "&7", "&eLMB: +10 | RMB: -10"))
+                Lang.getComponent("&eText Opacity"),
+                Lang.getComponents(List.of("&7", "&fSet text opacity.", "&7", "&eLMB: +10 | RMB: -10"))
         ));
     }
 
@@ -186,10 +187,10 @@ public class PropertiesMenuGUI extends BaseGUI {
             case 13 -> adjustShadow(clickType);
             case 14 -> adjustBrightness(clickType);
             case 15 -> handlePlaceOnSurface(clickType);
-            case 20 -> handleSlot20(clickType);
+            case 20 -> handleSlot20();
             case 21 -> handleSlot21(clickType);
-            case 22 -> handleSlot22(clickType);
-            case 23 -> handleSlot23(clickType);
+            case 22 -> handleSlot22();
+            case 23 -> handleSlot23();
             case 24 -> handleSlot24(clickType);
             case 25 -> handleSlot25(clickType);
             case 36 -> {
@@ -279,7 +280,7 @@ public class PropertiesMenuGUI extends BaseGUI {
         }
     }
 
-    private void handleSlot20(ClickType clickType) {
+    private void handleSlot20() {
         if (display instanceof BlockDisplay) {
             player.closeInventory();
             new BlockSelectGUI(plugin, player) {
@@ -324,7 +325,7 @@ public class PropertiesMenuGUI extends BaseGUI {
         }
     }
 
-    private void handleSlot22(ClickType clickType) {
+    private void handleSlot22() {
         if (display instanceof TextDisplay textDisplay) {
             boolean enabled = textDisplay.getBackgroundColor() != null
                     && textDisplay.getBackgroundColor().getAlpha() > 0;
@@ -335,7 +336,7 @@ public class PropertiesMenuGUI extends BaseGUI {
         }
     }
 
-    private void handleSlot23(ClickType clickType) {
+    private void handleSlot23() {
         if (display instanceof TextDisplay textDisplay) {
             textDisplay.setSeeThrough(!textDisplay.isSeeThrough());
             open();

@@ -48,7 +48,7 @@ public class TextColorGUI extends BaseGUI {
         
         
         String title = "&8✦ &6Text Color";
-        inventory = Bukkit.createInventory(this, 45, Lang.colorize(title));
+        inventory = Bukkit.createInventory(this, 45, Lang.getComponent(title));
         
         fillBorder(Material.GRAY_STAINED_GLASS_PANE);
         
@@ -62,11 +62,11 @@ public class TextColorGUI extends BaseGUI {
             
             inventory.setItem(slots[i], createItem(
                 color.material,
-                color.code + "✦ " + colorName,
-                "&7",
-                loreText,
-                "&7",
-                "&fPreview: " + color.code + "Sample text"
+                Lang.getComponent(color.code + "✦ " + colorName),
+                Lang.getComponent("&7"),
+                Lang.getComponent(loreText),
+                Lang.getComponent("&7"),
+                Lang.getComponent("&fPreview: " + color.code + "Sample text")
             ));
         }
         
@@ -76,20 +76,20 @@ public class TextColorGUI extends BaseGUI {
         String underlineText = "&nUnderline";
         String strikeText = "&mStrikethrough";
         
-        inventory.setItem(31, createItem(Material.ANVIL, boldText,
-            "&7", "&7Toggle bold"));
-        inventory.setItem(32, createItem(Material.FEATHER, italicText,
-            "&7", "&7Toggle italic"));
-        inventory.setItem(33, createItem(Material.IRON_CHAIN, underlineText,
-            "&7", "&7Toggle underline"));
-        inventory.setItem(34, createItem(Material.BARRIER, strikeText,
-            "&7", "&7Toggle strikethrough"));
+        inventory.setItem(31, createItem(Material.ANVIL, Lang.getComponent(boldText),
+            Lang.getComponent("&7"), Lang.getComponent("&7Toggle bold")));
+        inventory.setItem(32, createItem(Material.FEATHER, Lang.getComponent(italicText),
+            Lang.getComponent("&7"), Lang.getComponent("&7Toggle italic")));
+        inventory.setItem(33, createItem(Material.IRON_CHAIN, Lang.getComponent(underlineText),
+            Lang.getComponent("&7"), Lang.getComponent("&7Toggle underline")));
+        inventory.setItem(34, createItem(Material.BARRIER, Lang.getComponent(strikeText),
+            Lang.getComponent("&7"), Lang.getComponent("&7Toggle strikethrough")));
         
         // Rainbow gradient option
         String rainbowText = "&c&lR&6&la&e&li&a&ln&b&lb&9&lo&d&lw";
-        inventory.setItem(30, createItem(Material.PRISMARINE_SHARD, rainbowText,
-            "&7",
-            "&7Apply rainbow effect"));
+        inventory.setItem(30, createItem(Material.PRISMARINE_SHARD, Lang.getComponent(rainbowText),
+            Lang.getComponent("&7"),
+            Lang.getComponent("&7Apply rainbow effect")));
         
         // Back button
         inventory.setItem(36, getBackButton());
