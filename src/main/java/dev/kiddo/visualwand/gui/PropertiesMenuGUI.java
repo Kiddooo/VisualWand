@@ -58,38 +58,40 @@ public class PropertiesMenuGUI extends BaseGUI {
         inventory.setItem(11, createItem(
                 Material.GLOWSTONE_DUST,
                 "&eGlow",
-                Lang.colorizeList(List.of("&7", "&fSet object glow color.", "&7", "&eClick to toggle!"))
+                Lang.colorizeList(List.of("&7", "&fToggle the object's glow effect.", "&7", "&eClick to toggle!"))
         ));
 
         inventory.setItem(12, createItem(
                 Material.SPYGLASS,
                 "&eView Range: &f" + DisplayPropertyUtil.formatViewRange(display.getViewRange()),
-                Lang.colorizeList(List.of("&7", "&fHow far the object is visible.", "&7Value is a multiplier; 1 is roughly 64 blocks.", "&7", "&eLMB: +0.5 | RMB: -0.5 | Shift: Reset"))
-        ));
+                Lang.colorizeList(List.of("&7", "&fHow far the object is visible.", "&7Value is a multiplier; 1 is roughly 64 blocks.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
+        );
 
         inventory.setItem(13, createItem(
                 Material.BLACK_CONCRETE,
                 "&eShadow: &f" + DisplayPropertyUtil.formatNumber(display.getShadowRadius()),
-                Lang.colorizeList(List.of("&7", "&fShadow radius under the object.", "&7Values are rounded to clean 0.1 increments.", "&7", "&eLMB: +0.1 | RMB: -0.1 | Shift: Reset"))
-        ));
+                Lang.colorizeList(List.of("&7", "&fShadow radius under the object.", "&7Values are rounded to clean 0.1 increments.", "&7", "&eLMB: +1 | RMB: -1 | Shift+LMB: +0.1", "&eShift+RMB: -0.1 | Middle: Reset")))
+        );
 
         String brightnessValue;
         if (display.getBrightness() == null) {
             brightnessValue = "Auto";
         } else {
-            brightnessValue = display.getBrightness().getBlockLight()
-                    + "/"
-                    + display.getBrightness().getSkyLight();
+            brightnessValue = display.getBrightness().getBlockLight() + "/15";
         }
 
-        List<String> brightnessLore = Lang.colorizeList(List.of("&7", "&fSet custom object brightness.", "&7Current: " + brightnessValue, "&7", "&eLMB: +1 | RMB: -1 | Shift: Reset"));
+        List<String> brightnessLore = Lang.colorizeList(List.of(
+                "&7", "&fOverrides the light level on this display.",
+                "&7Range: 0 (dark) to 15 (full bright).",
+                "&7", "&7Current: " + brightnessValue,
+                "&7", "&eLMB: +1 | RMB: -1 | Middle: Auto"
+        ));
 
         inventory.setItem(14, createItem(
                 Material.LANTERN,
-                "&eBrightness",
+                "&eBrightness: &f" + brightnessValue,
                 brightnessLore
         ));
-
         if (display instanceof BlockDisplay || display instanceof ItemDisplay) {
             inventory.setItem(15, createItem(
                     Material.MOSS_CARPET,
@@ -213,46 +215,60 @@ public class PropertiesMenuGUI extends BaseGUI {
     }
 
     private void adjustViewRange(ClickType clickType) {
-        if (clickType.isShiftClick()) {
+        if (clickType == ClickType.MIDDLE) {
             display.setViewRange(1.0F);
             open();
             return;
         }
 
         float current = display.getViewRange();
-        float next = clickType.isRightClick() ? current - 0.5F : current + 0.5F;
+        float next;
+        if (clickType == ClickType.SHIFT_LEFT) {
+            next = current + 0.1F;
+        } else if (clickType == ClickType.SHIFT_RIGHT) {
+            next = current - 0.1F;
+        } else if (clickType == ClickType.RIGHT) {
+            next = current - 1.0F;
+        } else {
+            next = current + 1.0F;
+        }
         display.setViewRange(Math.clamp(next, 0.1F, 10.0F));
         open();
     }
 
     private void adjustShadow(ClickType clickType) {
-        if (clickType.isShiftClick()) {
+        if (clickType == ClickType.MIDDLE) {
             display.setShadowRadius(0.0F);
             open();
             return;
         }
 
         float current = display.getShadowRadius();
-        float next = clickType.isRightClick() ? current - 0.1F : current + 0.1F;
+        float next;
+        if (clickType == ClickType.SHIFT_LEFT) {
+            next = current + 0.1F;
+        } else if (clickType == ClickType.SHIFT_RIGHT) {
+            next = current - 0.1F;
+        } else if (clickType == ClickType.RIGHT) {
+            next = current - 1.0F;
+        } else {
+            next = current + 1.0F;
+        }
         display.setShadowRadius(DisplayPropertyUtil.roundTenths(Math.clamp(next, 0.0F, 5.0F)));
         open();
     }
 
     private void adjustBrightness(ClickType clickType) {
-        if (clickType.isShiftClick()) {
+        if (clickType == ClickType.MIDDLE) {
             display.setBrightness(null);
             open();
             return;
         }
 
-        Display.Brightness brightness = display.getBrightness();
-        int block = brightness != null ? brightness.getBlockLight() : 7;
-        int sky = brightness != null ? brightness.getSkyLight() : 7;
-        int step = clickType.isRightClick() ? -1 : 1;
-
-        block = Math.clamp(block + step, 0, 15);
-        sky = Math.clamp(sky + step, 0, 15);
-        display.setBrightness(new Display.Brightness(block, sky));
+        int level = display.getBrightness() != null ? display.getBrightness().getBlockLight() : 7;
+        int step = clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT ? -1 : 1;
+        level = Math.clamp(level + step, 0, 15);
+        display.setBrightness(new Display.Brightness(level, level));
         open();
     }
 
