@@ -1328,7 +1328,6 @@ public final class WandListener implements Listener {
         clearDeleteConfirmation(player);
 
         plugin.getAnimationManager().stopAnimation(display);
-        plugin.getDisplayStorage().removeDisplay(display);
         display.remove();
 
         player.sendMessage(Lang.getPrefixed("&cDeleted " + getDisplayTypeName(display) + "."));

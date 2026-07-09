@@ -131,8 +131,6 @@ public class ItemSelectGUI extends BaseGUI {
             itemDisplay.setDisplayHeight(0.5F);
             itemDisplay.setDisplayWidth(0.5F);
             itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
-
-            plugin.getDisplayStorage().addDisplay(itemDisplay);
         });
 
         player.sendMessage(Lang.getPrefixed("&aCreated new object: &eItem Display"));

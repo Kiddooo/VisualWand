@@ -84,7 +84,6 @@ public class MainMenuGUI extends BaseGUI {
             textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
 
-            plugin.getDisplayStorage().addDisplay(textDisplay);
         });
 
         player.sendMessage(Lang.getPrefixed("&aCreated new object: &eText Display"));

@@ -112,7 +112,6 @@ public class EditMenuGUI extends BaseGUI {
                 // Delete display
                 player.closeInventory();
                 plugin.getAnimationManager().stopAnimation(display);
-                plugin.getDisplayStorage().removeDisplay(display);
                 plugin.getGizmoManager().stopGizmo(player);
                 display.remove();
                 player.sendMessage(Lang.getPrefixed("&cDeleted display object!"));

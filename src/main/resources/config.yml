@@ -123,9 +123,3 @@ animations:
       max-scale: 1.1
       speed: 0.01
 
-# Storage settings
-storage:
-  # Auto-save interval in minutes (0 = disabled)
-  auto-save-interval: 5
-  # Save displays on server stop
-  save-on-stop: true

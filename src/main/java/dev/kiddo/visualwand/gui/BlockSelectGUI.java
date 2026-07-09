@@ -111,8 +111,6 @@ public class BlockSelectGUI extends BaseGUI {
             blockDisplay.setBlock(blockData);
             blockDisplay.setDisplayWidth(1.0F);
             blockDisplay.setDisplayHeight(1.0F);
-
-            plugin.getDisplayStorage().addDisplay(blockDisplay);
         });
     }
 }
