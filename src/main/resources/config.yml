@@ -1,23 +1,22 @@
 # Wand settings
 wand:
-  # Material for the Architect's Wand
   material: BLAZE_ROD
   name: "&6✦ &eArchitect's Wand &6✦"
   lore:
     - "&7"
-    - "&fRMB in air &8→ &aCreate objects"
-    - "&fRMB on object &8→ &bEdit object"
+    - "&fRMB on object &8→ &bSelect and open editor"
+    - "&fChoose a click-editing mode in Transformations"
+    - "&fLMB &8→ &aIncrease &7| &fRMB &8→ &cDecrease"
+    - "&fDrop wand &8→ &eReopen mode menu"
     - "&fShift + RMB &8→ &cDelete object"
     - "&7"
     - "&8Plugin by MiniGames.Cafe"
 
-# Gizmo settings
+# Read-only particle gizmo rendering for active click-editing modes
 gizmo:
-  # Existing settings retained from the base plugin.
   particle-density: 20
   size: 1.5
   update-interval: 2
-
   colors:
     x-axis: [255, 0, 0]
     y-axis: [0, 255, 0]
@@ -25,85 +24,17 @@ gizmo:
     scale: [255, 255, 0]
     rotation: [255, 0, 255]
 
-  # Crosshair movement preview introduced in Patch 2.
-  move-preview:
-    # Interaction behaviour
-    min-distance: 0.5
-    max-distance: 512.0
-    scroll-step: 1.0
-    fast-scroll-multiplier: 5.0
-    surface-offset: 0.02
-
-    # Update cadence, in server ticks
-    update-interval: 1
-    actionbar-update-interval: 10
-
-    # Preview geometry
-    axis-length: 0.24
-    offset-line-threshold: 0.05
-    beam-samples: 24
-    axis-samples: 5
-    offset-samples: 12
-
-    # Semantic movement colours. Axis marker colours continue to use
-    # gizmo.colors.x-axis, y-axis and z-axis above.
-    colors:
-      air: [255, 210, 45]
-      surface: [75, 225, 95]
-      no-surface: [235, 70, 70]
-      offset: [230, 230, 230]
-
-    particle-sizes:
-      beam: 0.65
-      axis: 0.8
-      offset: 0.45
-  transform-controls:
-    # How often active transform sessions update, in server ticks.
-    update-interval: 1
-
-    # How often the action bar is refreshed, in transform-session updates.
-    actionbar-update-interval: 8
-
-    # Temporarily outline the selected display while transforming.
-    glow-while-transforming: true
-
-    move:
-      min-distance: 0.5
-      max-distance: 512.0
-      scroll-step: 1.0
-      # Fraction of the normal move step used while crouching.
-      # Must be greater than 0 and no greater than 1.
-      fine-multiplier: 0.20
-      surface-offset: 0.02
-
-    scale:
-      # Multiplicative amount applied per mouse-wheel step.
-      factor: 1.10
-      fine-factor: 1.02
-      min: 0.01
-      max: 100.0
-
-    rotation:
-      step-degrees: 15.0
-      fine-step-degrees: 5.0
-      initial-axis: Y
-
-# Editor settings
+# Centralized display editor settings
 editor:
-  # Maximum distance for ray-tracing (in blocks)
   max-distance: 50.0
-  # Sensitivity for transformations
-  move-sensitivity: 0.1
-  rotate-sensitivity: 5.0
-  scale-sensitivity: 0.05
+
   targeting:
     highlight-enabled: true
     update-interval: 2
+
   delete-confirmation:
-    # How long the second crouch-right-click confirmation remains valid, in seconds.
     timeout-seconds: 5.0
 
-  # Centralized display editing presets
   steps:
     translation:
       fine: 0.01
@@ -133,9 +64,7 @@ editor:
 
 # Animation settings
 animations:
-  # Default tick rate for animations
   tick-rate: 2
-  # Presets
   presets:
     slow-rotation:
       type: ROTATION
@@ -150,4 +79,3 @@ animations:
       min-scale: 0.9
       max-scale: 1.1
       speed: 0.01
-

@@ -80,15 +80,15 @@ public class MainMenuGUI extends BaseGUI {
                 .getLocation()
                 .add(0.5D, 0.0D, 0.5D);
 
-        player.getWorld().spawn(spawnLocation, TextDisplay.class, textDisplay -> {
-            textDisplay.text(Component.text("Click to edit"));
-            textDisplay.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
-            textDisplay.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
+        TextDisplay textDisplay = player.getWorld().spawn(spawnLocation, TextDisplay.class, spawned -> {
+            spawned.text(Component.text("Click to edit"));
+            spawned.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
+            spawned.setBackgroundColor(org.bukkit.Color.fromARGB(128, 0, 0, 0));
 
         });
 
         player.sendMessage(Lang.getPrefixed("&aCreated new object: &eText Display"));
 
-        plugin.getEditorManager().startTextInput(player, null);
+        plugin.getEditorManager().startTextInput(player, textDisplay);
     }
 }

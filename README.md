@@ -12,21 +12,21 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 
 ### 🎯 "Point and Click" Editing (Ray-tracing)
 - No commands required
-- Hold the **Architect's Wand**, right-click in the air and a GUI appears
-- Select a model (block, item, or text)
-- RMB on an existing object opens the edit menu
-- Shift + RMB deletes the object
+- Hold the **Architect's Wand** and right-click the air to create an object
+- Right-click an existing object to select it and open its edit menu
+- Choose a transformation mode, then use **LMB to increase** and **RMB to decrease**
+- Press **Drop** while holding the wand to reopen the mode menu
+- Shift + RMB deletes an object through confirmation
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
 
-### 🔧 Transformation Gizmo (Killer Feature!)
-- Visual arrows made with particles around the object
+### 🔧 Click Editing and Transformation Gizmo
+- Choose from exactly 15 modes: Move XYZ, Left Rotation XYZ, Right Rotation XYZ, Scale XYZ,
+  Uniform Scale, Entity Yaw, and Entity Pitch
+- Fine, Normal, and Coarse step presets persist when selecting another display
+- Visual particles show translation arrows, rotation circles, or scale handles for the active mode
 - **Red axis = X**, **Green axis = Y**, **Blue axis = Z**
-- Three modes:
-  - **Move** - arrows to move the object
-  - **Rotate** - circles for rotation
-  - **Scale** - cubes to change size
-- Feels like working in a game engine (like Unity or Blender)!
+- The gizmo is read-only feedback; all edits use normal unmodified Minecraft clicks
 
 ![Gizmo](https://cdn.modrinth.com/data/cached_images/741f8db2fcba91c1f1c574b1053278a48caa8539.jpeg)
 
@@ -94,22 +94,16 @@ A plugin that allows players and administrators to create, edit, and animate Dis
    - **Text Display** - text with formatting
 
 ### Editing Objects
-1. Aim at an existing Display object with the wand
-2. Click **RMB** to open the edit menu
-3. Options:
-   - **Transformations** - move, rotate, scale
-   - **Animations** - add animations
-   - **Properties** - change object details
-   - **Gizmo** - enable visual editor
+1. Aim the wand at an existing Block, Item, or Text Display
+2. Click **RMB** to select it and open the edit menu
+3. Open **Transformations** and choose one of the 15 modes; the menu closes immediately
+4. Use ordinary **LMB to increase** and **RMB to decrease** the selected value
+5. Held clicks repeat only at the configured bounded rate
+6. Press **Drop** while holding the wand to reopen the transformation menu
+7. Use the menu for presets, undo/redo, transform copy/paste, resets, cancel, or deselect
 
-### Using Gizmo
-1. In the edit menu, click "Toggle Gizmo"
-2. You'll see colored arrows/circles around the object
-3. Use **LMB** (left click) to switch modes
-4. Modes:
-   - 🔴🟢🔵 Arrows = Moving
-   - ⭕ Circles = Rotating
-   - 🔶 Cubes = Scaling
+Animations and entity-specific properties remain available from the edit menu. No client mod is
+required.
 
 ### Deleting Objects
 - Aim at object + **Shift + RMB** = Delete
@@ -121,27 +115,25 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 The `config.yml` file allows customization:
 
 ```yaml
-# Language (pl/en)
-language: en
-
-# Wand settings
 wand:
   material: BLAZE_ROD
 
-# Gizmo settings
 gizmo:
   particle-density: 20
   size: 1.5
   update-interval: 2
 
-# Editor settings
 editor:
-  max-distance: 50
-  move-sensitivity: 0.1
-  rotate-sensitivity: 5.0
-  scale-sensitivity: 0.05
+  max-distance: 50.0
+  steps:
+    translation: {fine: 0.01, normal: 0.1, coarse: 1.0}
+    rotation-degrees: {fine: 1.0, normal: 5.0, coarse: 15.0}
+    scale: {fine: 0.01, normal: 0.1, coarse: 0.5}
+  input:
+    initial-delay-ticks: 6
+    repeat-interval-ticks: 2
+    release-gap-ticks: 8
 
-# Animations
 animations:
   tick-rate: 2
 ```
@@ -174,21 +166,21 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 
 ### 🎯 Edycja "Wskaż i Kliknij" (Ray-tracing)
 - Nie musisz wpisywać komend
-- Trzymasz **Różdżkę Architekta**, klikasz prawym na powietrze i pojawia się GUI
-- Wybierasz model (blok, przedmiot lub tekst)
-- PPM na istniejący obiekt otwiera menu edycji
-- Shift + PPM usuwa obiekt
+- Trzymaj **Różdżkę Architekta** i kliknij PPM w powietrze, aby stworzyć obiekt
+- PPM na istniejącym obiekcie wybiera go i otwiera menu edycji
+- Wybierz tryb transformacji, potem używaj **LPM, aby zwiększać**, i **PPM, aby zmniejszać**
+- Naciśnij **wyrzucenie przedmiotu**, trzymając różdżkę, aby ponownie otworzyć menu trybów
+- Shift + PPM usuwa obiekt po potwierdzeniu
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
 
-### 🔧 Gizmo Transformacji (Killer Feature!)
-- Wizualne strzałki zrobione z particles wokół obiektu
+### 🔧 Edycja kliknięciami i Gizmo transformacji
+- Wybierz jeden z dokładnie 15 trybów: przesuwanie XYZ, lewa rotacja XYZ, prawa rotacja XYZ,
+  skala XYZ, skala równomierna, obrót obiektu i pochylenie obiektu
+- Presety Dokładny, Normalny i Zgrubny pozostają wybrane po zmianie obiektu
+- Cząsteczki pokazują strzałki, okręgi lub uchwyty skali dla aktywnego trybu
 - **Czerwona oś = X**, **Zielona oś = Y**, **Niebieska oś = Z**
-- Trzy tryby:
-  - **Przesuwanie** - strzałki do przesuwania obiektu
-  - **Obracanie** - okręgi do rotacji
-  - **Skalowanie** - kostki do zmiany rozmiaru
-- Daje wrażenie pracy w silniku gry (jak Unity czy Blender)!
+- Gizmo jest tylko podglądem; edycja używa zwykłych kliknięć bez moda klienta
 
 ![Gizmo](https://cdn.modrinth.com/data/cached_images/741f8db2fcba91c1f1c574b1053278a48caa8539.jpeg)
 
@@ -256,22 +248,16 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
    - **Text Display** - tekst z formatowaniem
 
 ### Edytowanie obiektów
-1. Celuj różdżką w istniejący obiekt Display
-2. Kliknij **PPM** aby otworzyć menu edycji
-3. Opcje:
-   - **Transformacje** - przesuwaj, obracaj, skaluj
-   - **Animacje** - dodaj animacje
-   - **Właściwości** - zmień szczegóły obiektu
-   - **Gizmo** - włącz wizualny edytor
+1. Celuj różdżką w istniejący Block, Item lub Text Display
+2. Kliknij **PPM**, aby wybrać obiekt i otworzyć menu edycji
+3. Otwórz **Transformacje** i wybierz jeden z 15 trybów; menu zamknie się automatycznie
+4. Używaj zwykłego **LPM, aby zwiększać**, i **PPM, aby zmniejszać** wybraną wartość
+5. Przytrzymane kliknięcia powtarzają się tylko z ograniczoną częstotliwością
+6. Naciśnij **wyrzucenie przedmiotu**, trzymając różdżkę, aby wrócić do menu transformacji
+7. Menu zawiera presety, cofanie/ponawianie, kopiowanie transformacji, resety,
+   anulowanie trybu i odznaczenie obiektu
 
-### Używanie Gizmo
-1. W menu edycji kliknij "Przełącz Gizmo"
-2. Zobaczysz kolorowe strzałki/okręgi wokół obiektu
-3. Używaj **LPM** (lewy przycisk) aby przełączać tryby
-4. Tryby:
-   - 🔴🟢🔵 Strzałki = Przesuwanie
-   - ⭕ Okręgi = Obracanie
-   - 🔶 Kostki = Skalowanie
+Animacje i właściwości danego typu obiektu pozostają dostępne w menu edycji.
 
 ### Usuwanie obiektów
 - Celuj w obiekt + **Shift + PPM** = Usuń
@@ -283,27 +269,25 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 Plik `config.yml` pozwala dostosować:
 
 ```yaml
-# Język (pl/en)
-language: pl
-
-# Ustawienia różdżki
 wand:
   material: BLAZE_ROD
 
-# Ustawienia Gizmo
 gizmo:
   particle-density: 20
   size: 1.5
   update-interval: 2
 
-# Ustawienia edytora
 editor:
-  max-distance: 50
-  move-sensitivity: 0.1
-  rotate-sensitivity: 5.0
-  scale-sensitivity: 0.05
+  max-distance: 50.0
+  steps:
+    translation: {fine: 0.01, normal: 0.1, coarse: 1.0}
+    rotation-degrees: {fine: 1.0, normal: 5.0, coarse: 15.0}
+    scale: {fine: 0.01, normal: 0.1, coarse: 0.5}
+  input:
+    initial-delay-ticks: 6
+    repeat-interval-ticks: 2
+    release-gap-ticks: 8
 
-# Animacje
 animations:
   tick-rate: 2
 ```

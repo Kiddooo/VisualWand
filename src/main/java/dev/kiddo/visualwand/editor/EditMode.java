@@ -7,6 +7,7 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Locale;
@@ -106,7 +107,19 @@ public enum EditMode {
                 };
                 yield String.format(Locale.ROOT, "%s %.3f", axis, coordinate);
             }
-            case LEFT_ROTATION, RIGHT_ROTATION -> "Quaternion normalized";
+            case LEFT_ROTATION, RIGHT_ROTATION -> {
+                Transformation transformation = state.transformation();
+                Quaternionf rotation = category == EditCategory.LEFT_ROTATION
+                        ? transformation.getLeftRotation()
+                        : transformation.getRightRotation();
+                yield String.format(
+                        Locale.ROOT,
+                        "Quaternion %.3f %.3f %.3f %.3f",
+                        rotation.x,
+                        rotation.y,
+                        rotation.z,
+                        rotation.w);
+            }
             case SCALE -> {
                 Transformation transformation = state.transformation();
                 Vector3f scale = transformation.getScale();

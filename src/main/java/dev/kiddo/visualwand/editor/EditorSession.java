@@ -1,141 +1,128 @@
 package dev.kiddo.visualwand.editor;
 
-import dev.kiddo.visualwand.VisualWand;
-import dev.kiddo.visualwand.gizmo.GizmoMode;
-import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Transformation;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
-public class EditorSession {
+import java.util.Objects;
+import java.util.UUID;
 
-    private final VisualWand plugin;
-    private final Player player;
-    private final Display display;
-    
-    private boolean isTransforming = false;
-    private GizmoMode currentMode = GizmoMode.MOVE;
-    private Location startLocation;
-    private Transformation originalTransformation;
+/**
+ * Mutable editing metadata for one player, without retaining Bukkit entity objects.
+ */
+public final class EditorSession {
 
-    public EditorSession(VisualWand plugin, Player player, Display display) {
-        this.plugin = plugin;
-        this.player = player;
-        this.display = display;
-        this.originalTransformation = display.getTransformation();
+    private static final long NEVER_CONSUMED = Long.MIN_VALUE;
+
+    private final UUID playerId;
+    private final UUID displayId;
+    private final NamespacedKey worldKey;
+    private final InputRepeatGate repeatGate = new InputRepeatGate();
+
+    private StepPreset preset;
+    private EditMode mode;
+    private boolean consuming;
+    private long lastConsumedTick = NEVER_CONSUMED;
+    private DisplayState undoState;
+    private LastFeedback lastFeedback;
+
+    public EditorSession(Player player, Display display, StepPreset preset) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(display, "display");
+        this.playerId = player.getUniqueId();
+        this.displayId = display.getUniqueId();
+        this.worldKey = display.getWorld().getKey();
+        this.preset = Objects.requireNonNull(preset, "preset");
     }
 
-    public Player getPlayer() {
-        return player;
+    public UUID playerId() {
+        return playerId;
     }
 
-    public Display getDisplay() {
-        return display;
+    public UUID displayId() {
+        return displayId;
     }
 
-    public boolean isTransforming() {
-        return isTransforming;
+    public NamespacedKey worldKey() {
+        return worldKey;
     }
 
-    public void setTransforming(boolean transforming) {
-        isTransforming = transforming;
+    public StepPreset preset() {
+        return preset;
     }
 
-    public GizmoMode getCurrentMode() {
-        return currentMode;
+    public EditMode mode() {
+        return mode;
     }
 
-    public void setCurrentMode(GizmoMode mode) {
-        this.currentMode = mode;
+    public boolean consuming() {
+        return consuming;
     }
 
-    public void startTransformation(GizmoMode mode) {
-        this.currentMode = mode;
-        this.isTransforming = true;
-        this.startLocation = player.getLocation().clone();
-        this.originalTransformation = display.getTransformation();
+    public long lastConsumedTick() {
+        return lastConsumedTick;
     }
 
-    public void updateTransformation(Location from, Location to) {
-        if (!isTransforming || display == null || !display.isValid()) {
-            return;
+    public DisplayState undoState() {
+        return undoState;
+    }
+
+    public LastFeedback lastFeedback() {
+        return lastFeedback;
+    }
+
+    InputRepeatGate repeatGate() {
+        return repeatGate;
+    }
+
+    void selectPreset(StepPreset preset) {
+        this.preset = Objects.requireNonNull(preset, "preset");
+    }
+
+    void selectMode(EditMode mode) {
+        this.mode = Objects.requireNonNull(mode, "mode");
+        repeatGate.reset();
+        consuming = false;
+        lastConsumedTick = NEVER_CONSUMED;
+        lastFeedback = null;
+    }
+
+    void cancelMode() {
+        mode = null;
+        repeatGate.reset();
+        consuming = false;
+        lastConsumedTick = NEVER_CONSUMED;
+        lastFeedback = null;
+    }
+
+    void markInputConsumed(long tick) {
+        consuming = true;
+        lastConsumedTick = tick;
+    }
+
+    void clearConsumptionIfIdle(long tick, int releaseGapTicks) {
+        if (consuming
+                && (tick < lastConsumedTick || tick - lastConsumedTick >= releaseGapTicks)) {
+            consuming = false;
+            lastConsumedTick = NEVER_CONSUMED;
         }
+    }
 
-        double deltaYaw = to.getYaw() - from.getYaw();
-        double deltaPitch = to.getPitch() - from.getPitch();
+    void setUndoState(DisplayState undoState) {
+        this.undoState = undoState;
+    }
 
-        switch (currentMode) {
-            case MOVE -> {
-                // Move based on player's look direction change
-                double moveSpeed = plugin.getConfig().getDouble("editor.move-sensitivity", 0.1);
-                Location displayLoc = display.getLocation();
-                displayLoc.add(
-                    -deltaYaw * moveSpeed * 0.1,
-                    -deltaPitch * moveSpeed * 0.1,
-                    0
-                );
-                display.teleport(displayLoc);
-            }
-            case ROTATE -> {
-                // Rotate based on mouse movement
-                double rotateSpeed = plugin.getConfig().getDouble("editor.rotate-sensitivity", 5.0);
-                Transformation current = display.getTransformation();
-                Quaternionf rotation = current.getLeftRotation();
-                
-                float radY = (float) Math.toRadians(-deltaYaw * rotateSpeed);
-                float radX = (float) Math.toRadians(-deltaPitch * rotateSpeed);
-                
-                Quaternionf additionalRotation = new Quaternionf().rotateXYZ(radX, radY, 0);
-                rotation.mul(additionalRotation);
-                
-                Transformation newTransformation = new Transformation(
-                    current.getTranslation(),
-                    rotation,
-                    current.getScale(),
-                    current.getRightRotation()
-                );
-                display.setTransformation(newTransformation);
-            }
-            case SCALE -> {
-                // Scale based on pitch movement
-                double scaleSpeed = plugin.getConfig().getDouble("editor.scale-sensitivity", 0.05);
-                Transformation newTransformation = getTransformation(deltaPitch, scaleSpeed);
-                display.setTransformation(newTransformation);
+    void setLastFeedback(LastFeedback lastFeedback) {
+        this.lastFeedback = lastFeedback;
+    }
+
+    public record LastFeedback(EditMode mode, double signedDelta, String currentValue) {
+        public LastFeedback {
+            Objects.requireNonNull(mode, "mode");
+            Objects.requireNonNull(currentValue, "currentValue");
+            if (!Double.isFinite(signedDelta)) {
+                throw new IllegalArgumentException("signedDelta must be finite");
             }
         }
-    }
-
-    private @NonNull Transformation getTransformation(double deltaPitch, double scaleSpeed) {
-        Transformation current = display.getTransformation();
-        Vector3f scale = current.getScale();
-
-        float scaleChange = (float) (-deltaPitch * scaleSpeed * 0.1);
-        float newScale = Math.max(0.1f, scale.x + scaleChange);
-
-        return new Transformation(
-            current.getTranslation(),
-            current.getLeftRotation(),
-            new Vector3f(newScale, newScale, newScale),
-            current.getRightRotation()
-        );
-    }
-
-    public void cancelTransformation() {
-        if (isTransforming && originalTransformation != null) {
-            display.setTransformation(originalTransformation);
-        }
-        isTransforming = false;
-    }
-
-    public void confirmTransformation() {
-        isTransforming = false;
-        originalTransformation = display.getTransformation();
-    }
-
-    public void cleanup() {
-        isTransforming = false;
     }
 }

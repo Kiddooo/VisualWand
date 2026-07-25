@@ -1,7 +1,5 @@
 package dev.kiddo.visualwand.gui;
 
-import java.util.List;
-
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.Lang;
 import org.bukkit.Bukkit;
@@ -14,6 +12,8 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class EditMenuGUI extends BaseGUI {
 
     private final Display display;
@@ -25,64 +25,38 @@ public class EditMenuGUI extends BaseGUI {
 
     @Override
     protected void createInventory() {
-        String typeName = getDisplayTypeName();
-        String title = "&8✦ &6Edit &8- &f" + typeName;
+        String title = "&8✦ &6Edit &8- &f" + getDisplayTypeName();
         inventory = Bukkit.createInventory(this, 45, Lang.getComponent(title));
-
         fillBorder();
 
-        // Transformations button
         inventory.setItem(11, createItem(
-            Material.COMPASS,
-            Lang.getComponent("&6⚙ Transformations"),
-            Lang.getComponents(List.of("&7", "&fMove, rotate and scale the object.", "&7", "&eClick to open!"))
-        ));
+                Material.COMPASS,
+                Lang.getComponent("&6⚙ Click Transformations"),
+                Lang.getComponents(List.of(
+                        "&7",
+                        "&fChoose one of 15 move, rotation, scale,",
+                        "&for entity-orientation modes.",
+                        "&7Left click increases; right click decreases.",
+                        "&7Drop the wand to reopen the mode menu.",
+                        "&7",
+                        "&eClick to select this display and open!"))));
 
-        // Animations button
         inventory.setItem(13, createItem(
-            Material.ENDER_EYE,
-            Lang.getComponent("&d✿ Animations"),
-            Lang.getComponents(List.of("&7", "&fAdd animations to the object.", "&7", "&eClick to open!"))
-        ));
+                Material.ENDER_EYE,
+                Lang.getComponent("&d✿ Animations"),
+                Lang.getComponents(List.of("&7", "&fAdd animations to the object.", "&7", "&eClick to open!"))));
 
-        // Properties button
         inventory.setItem(15, createItem(
-            Material.WRITABLE_BOOK,
-            Lang.getComponent("&b✎ Properties"),
-            Lang.getComponents(List.of("&7", "&fChange object properties.", "&7", "&eClick to open!"))
-        ));
+                Material.WRITABLE_BOOK,
+                Lang.getComponent("&b✎ Properties"),
+                Lang.getComponents(List.of("&7", "&fChange object properties.", "&7", "&eClick to open!"))));
 
-        // Gizmo toggle
-        boolean gizmoActive = plugin.getGizmoManager().hasActiveGizmo(player);
-        String gizmoStatus = gizmoActive ?
-            "&aEnabled" :
-            "&cDisabled";
-
-        inventory.setItem(22, createItem(
-            gizmoActive ? Material.GLOWSTONE : Material.REDSTONE_LAMP,
-            Lang.getComponent("&6✦ Gizmo (3D Editor)"),
-            Lang.getComponents(List.of(
-                "&7",
-                "&fShows colored 3D arrows and handles around",
-                "&fthe object to move, rotate, or scale it",
-                "&fdirectly in the world.",
-                "&7Currently: &e" + gizmoStatus,
-                "&7",
-                "&eClick to toggle!"
-            ))
-        ));
-
-        // Delete button
         inventory.setItem(31, createItem(
-            Material.TNT,
-            Lang.getComponent("&c✖ Delete"),
-            Lang.getComponents(List.of("&7", "&fDeletes this object permanently!", "&7", "&cClick to delete!"))
-        ));
+                Material.TNT,
+                Lang.getComponent("&c✖ Delete"),
+                Lang.getComponents(List.of("&7", "&fDeletes this object permanently!", "&7", "&cClick to delete!"))));
 
-        // Back button
         inventory.setItem(36, getBackButton());
-
-        // Close button
         inventory.setItem(44, getCloseButton());
     }
 
@@ -90,53 +64,44 @@ public class EditMenuGUI extends BaseGUI {
     public void handleClick(int slot, ItemStack item, ClickType clickType) {
         switch (slot) {
             case 11 -> {
-                // Open transformations menu
-                player.closeInventory();
-                new TransformMenuGUI(plugin, player, display).open();
+                if (plugin.getEditorManager().select(player, display)) {
+                    player.closeInventory();
+                    new TransformMenuGUI(plugin, player, display).open();
+                }
             }
             case 13 -> {
-                // Open animations menu
                 player.closeInventory();
                 new AnimationMenuGUI(plugin, player, display).open();
             }
             case 15 -> {
-                // Open properties menu
                 player.closeInventory();
                 new PropertiesMenuGUI(plugin, player, display).open();
             }
-            case 22 -> {
-                // Toggle gizmo
-                if (plugin.getGizmoManager().hasActiveGizmo(player)) {
-                    plugin.getGizmoManager().stopGizmo(player);
-                } else {
-                    plugin.getGizmoManager().startGizmo(player, display);
-                }
-                // Refresh GUI
-                createInventory();
-            }
             case 31 -> {
-                // Delete display
                 player.closeInventory();
+                plugin.getEditorManager().clearEditorsOf(display.getUniqueId());
                 plugin.getAnimationManager().stopAnimation(display);
-                plugin.getGizmoManager().stopGizmo(player);
                 display.remove();
                 player.sendMessage(Lang.getPrefixed("&cDeleted display object!"));
             }
             case 36 -> {
-                // Back to main menu
                 player.closeInventory();
                 new MainMenuGUI(plugin, player).open();
             }
             case 44 -> player.closeInventory();
+            default -> {
+            }
         }
     }
 
     private String getDisplayTypeName() {
         if (display instanceof BlockDisplay) {
             return "Block Display";
-        } else if (display instanceof ItemDisplay) {
+        }
+        if (display instanceof ItemDisplay) {
             return "Item Display";
-        } else if (display instanceof TextDisplay) {
+        }
+        if (display instanceof TextDisplay) {
             return "Text Display";
         }
         return "Display";

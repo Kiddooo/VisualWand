@@ -97,7 +97,7 @@ public final class EditorConfiguration {
             maximumScaleMagnitude = DEFAULT_MAXIMUM_SCALE_MAGNITUDE;
         }
 
-        int initialDelayTicks = positiveInt(
+        int initialDelayTicks = nonNegativeInt(
                 configuration,
                 logger,
                 "editor.input.initial-delay-ticks",
@@ -245,6 +245,26 @@ public final class EditorConfiguration {
                 configured,
                 "a finite positive value representable by display scale components",
                 fallback);
+        return fallback;
+    }
+
+    private static int nonNegativeInt(
+            ConfigurationSection configuration,
+            Logger logger,
+            String path,
+            int fallback) {
+        Object configured = configuration.get(path);
+        if (configured instanceof Number number) {
+            double value = number.doubleValue();
+            if (Double.isFinite(value)
+                    && value >= 0.0D
+                    && value <= Integer.MAX_VALUE
+                    && value == Math.rint(value)) {
+                return (int) value;
+            }
+        }
+
+        logFallback(logger, path, configured, "a non-negative integer", fallback);
         return fallback;
     }
 
