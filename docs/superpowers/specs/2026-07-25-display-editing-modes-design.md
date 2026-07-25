@@ -22,9 +22,11 @@ One `EditorSession` exists per editing player and stores:
 - input repeat state for positive and negative clicks;
 - one immutable snapshot for undo;
 - the last feedback value;
-- original glow state for restoration.
+- whether an input pulse is currently being consumed.
 
 Transformation components are defensively copied because Bukkit/JOML values are mutable. A per-player clipboard in `EditorManager` stores a copied Bukkit `Transformation`; it does not store the entity's world location or entity-specific properties.
+
+`EditorFeedback` reuses the project's reference-counted glow pattern. It records one original glow value per selected display and restores that value only after the final editor deselects it, so concurrent viewers cannot clear each other's selection feedback.
 
 Selecting another display replaces the session, clears the active mode and undo snapshot, opens the mode menu, and retains the player's step preset. This prevents an old mode from changing a newly selected entity accidentally. Deselecting or cancelling removes the whole session.
 
@@ -130,7 +132,7 @@ Selecting a mode stores it, closes the inventory immediately, enables the select
 
 Every mutating reset and paste captures an undo snapshot. Reset rotations sets both left and right quaternions to identity but does not change entity yaw or pitch. Reset Entire Transformation uses zero translation, identity rotations, and unit scale. Cancel and Deselect both end the current session; Cancel is the user-facing editing exit, while Deselect explicitly emphasizes clearing selection.
 
-While a mode is active, an action bar periodically shows selected display type and UUID suffix, mode, category-specific step, signed last change, useful current value, and the menu-reopen control. The selected entity glows throughout the editing session; its original glow state is restored on cleanup.
+While a mode is active, an action bar periodically shows selected display type and UUID suffix, mode, category-specific step, signed last change, useful current value, and the menu-reopen control. The selected entity glows throughout the editing session; reference-counted cleanup restores its original glow state after the final editor leaves.
 
 ## Component Boundaries
 
