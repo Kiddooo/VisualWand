@@ -91,7 +91,7 @@ gizmo:
 # Editor settings
 editor:
   # Maximum distance for ray-tracing (in blocks)
-  max-distance: 50
+  max-distance: 50.0
   # Sensitivity for transformations
   move-sensitivity: 0.1
   rotate-sensitivity: 5.0
@@ -102,6 +102,34 @@ editor:
   delete-confirmation:
     # How long the second crouch-right-click confirmation remains valid, in seconds.
     timeout-seconds: 5.0
+
+  # Centralized display editing presets
+  steps:
+    translation:
+      fine: 0.01
+      normal: 0.1
+      coarse: 1.0
+    rotation-degrees:
+      fine: 1.0
+      normal: 5.0
+      coarse: 15.0
+    scale:
+      fine: 0.01
+      normal: 0.1
+      coarse: 0.5
+
+  scale:
+    minimum-magnitude: 0.01
+    maximum-magnitude: 100.0
+
+  input:
+    initial-delay-ticks: 6
+    repeat-interval-ticks: 2
+    release-gap-ticks: 8
+
+  feedback:
+    update-interval-ticks: 10
+    glow-selected: true
 
 # Animation settings
 animations:

@@ -1,6 +1,16 @@
 package dev.kiddo.visualwand.editor;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.util.Transformation;
+import org.joml.Vector3f;
+
+import java.util.Locale;
+import java.util.Objects;
 
 public enum EditMode {
     MOVE_X("Move X", EditCategory.TRANSLATION, EditAxis.X, StepType.TRANSLATION, Material.RED_CONCRETE),
@@ -52,4 +62,71 @@ public enum EditMode {
     public Material material() {
         return material;
     }
+
+    public boolean supports(Display display) {
+        return display instanceof BlockDisplay
+                || display instanceof ItemDisplay
+                || display instanceof TextDisplay;
+    }
+
+    public DisplayState apply(
+            TransformationOperations operations,
+            DisplayState state,
+            double step,
+            EditDirection direction) {
+        Objects.requireNonNull(operations, "operations");
+        Objects.requireNonNull(state, "state");
+        Objects.requireNonNull(direction, "direction");
+        if (!Double.isFinite(step) || step <= 0.0D) {
+            throw new IllegalArgumentException("step must be finite and greater than zero");
+        }
+
+        double signedStep = step * direction.sign();
+        return switch (category) {
+            case TRANSLATION -> state.withLocation(
+                    operations.move(state.location(), axis, signedStep));
+            case LEFT_ROTATION, RIGHT_ROTATION -> state.withTransformation(
+                    operations.rotate(state.transformation(), category, axis, signedStep));
+            case SCALE -> state.withTransformation(
+                    operations.scale(state.transformation(), axis, signedStep));
+            case ENTITY_ORIENTATION -> state.withLocation(
+                    operations.rotateEntity(state.location(), this, signedStep));
+        };
+    }
+
+    public String formatCurrent(DisplayState state) {
+        Objects.requireNonNull(state, "state");
+        return switch (category) {
+            case TRANSLATION -> {
+                Location location = state.location();
+                double coordinate = switch (axis) {
+                    case X -> location.getX();
+                    case Y -> location.getY();
+                    case Z -> location.getZ();
+                };
+                yield String.format(Locale.ROOT, "%s %.3f", axis, coordinate);
+            }
+            case LEFT_ROTATION, RIGHT_ROTATION -> "Quaternion normalized";
+            case SCALE -> {
+                Transformation transformation = state.transformation();
+                Vector3f scale = transformation.getScale();
+                yield String.format(
+                        Locale.ROOT,
+                        "X %.3f Y %.3f Z %.3f",
+                        scale.x,
+                        scale.y,
+                        scale.z);
+            }
+            case ENTITY_ORIENTATION -> {
+                Location location = state.location();
+                boolean yaw = this == ENTITY_YAW;
+                yield String.format(
+                        Locale.ROOT,
+                        "%s %.1f°",
+                        yaw ? "Yaw" : "Pitch",
+                        yaw ? location.getYaw() : location.getPitch());
+            }
+        };
+    }
+
 }
