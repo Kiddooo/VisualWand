@@ -108,6 +108,7 @@ public final class EditorInputListener implements Listener {
         }
 
         event.setCancelled(true);
+        manager.suppressInputForMenuOpen(player);
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             Display current = manager.selectedDisplay(player);
             if (current != null) {

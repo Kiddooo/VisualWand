@@ -27,6 +27,8 @@ import java.util.function.UnaryOperator;
  */
 public final class EditorManager {
 
+    private static final long MENU_OPEN_INPUT_SUPPRESSION_TICKS = 1L;
+
     private final VisualWand plugin;
     private final Map<UUID, EditorSession> sessions = new HashMap<>();
     private final Map<UUID, StepPreset> retainedPresets = new HashMap<>();
@@ -127,6 +129,14 @@ public final class EditorManager {
         return validateOrClear(player, selected, selected.mode()).valid();
     }
 
+    public void suppressInputForMenuOpen(Player player) {
+        Objects.requireNonNull(player, "player");
+        EditorSession selected = sessions.get(player.getUniqueId());
+        if (selected != null) {
+            selected.suppressInputThrough(currentTick + MENU_OPEN_INPUT_SUPPRESSION_TICKS);
+        }
+    }
+
     public boolean selectMode(Player player, EditMode mode) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(mode, "mode");
@@ -207,6 +217,9 @@ public final class EditorManager {
         }
 
         selected.markInputConsumed(currentTick);
+        if (selected.isInputSuppressed(currentTick)) {
+            return true;
+        }
         boolean accepted = selected.repeatGate().accept(
                 direction,
                 currentTick,

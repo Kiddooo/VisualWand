@@ -23,6 +23,7 @@ public final class EditorSession {
     private EditMode mode;
     private boolean consuming;
     private long lastConsumedTick = NEVER_CONSUMED;
+    private long inputSuppressedThroughTick = NEVER_CONSUMED;
     private DisplayState undoState;
     private LastFeedback lastFeedback;
 
@@ -75,6 +76,15 @@ public final class EditorSession {
         return repeatGate;
     }
 
+    boolean isInputSuppressed(long tick) {
+        return tick <= inputSuppressedThroughTick;
+    }
+
+    void suppressInputThrough(long tick) {
+        inputSuppressedThroughTick = Math.max(inputSuppressedThroughTick, tick);
+        repeatGate.reset();
+    }
+
     void selectPreset(StepPreset preset) {
         this.preset = Objects.requireNonNull(preset, "preset");
     }
@@ -84,6 +94,7 @@ public final class EditorSession {
         repeatGate.reset();
         consuming = false;
         lastConsumedTick = NEVER_CONSUMED;
+        inputSuppressedThroughTick = NEVER_CONSUMED;
         lastFeedback = null;
     }
 
@@ -92,6 +103,7 @@ public final class EditorSession {
         repeatGate.reset();
         consuming = false;
         lastConsumedTick = NEVER_CONSUMED;
+        inputSuppressedThroughTick = NEVER_CONSUMED;
         lastFeedback = null;
     }
 
