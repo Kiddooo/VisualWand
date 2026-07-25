@@ -31,3 +31,7 @@ logs/
 
 run/
 server/
+
+# Isolated worktrees
+
+.worktrees/
