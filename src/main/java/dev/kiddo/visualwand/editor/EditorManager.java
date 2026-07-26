@@ -5,6 +5,7 @@ import dev.kiddo.visualwand.util.Lang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -35,6 +36,7 @@ public final class EditorManager {
     private final Map<UUID, Transformation> clipboards = new HashMap<>();
     private final Map<UUID, TextInputRequest> pendingInputs = new HashMap<>();
     private final EditorFeedback feedback;
+    private final DisplayLockPolicy displayLocks;
 
     private EditorConfiguration configuration;
     private TransformationOperations operations;
@@ -45,6 +47,8 @@ public final class EditorManager {
 
     public EditorManager(VisualWand plugin) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
+        this.displayLocks = new DisplayLockPolicy(
+                new NamespacedKey(plugin, "display_locked"));
         this.configuration = EditorConfiguration.load(plugin);
         this.operations = createOperations(configuration);
         this.validator = new EditValidator(plugin.getServer(), configuration);
@@ -72,6 +76,10 @@ public final class EditorManager {
     public boolean select(Player player, Display display) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(display, "display");
+        if (displayLocks.isLocked(display)) {
+            feedback.notice(player, "This display is locked. Use the redstone torch to unlock it.");
+            return false;
+        }
 
         EditValidator.Result validation = validator.validateSelection(player, display);
         if (!validation.valid()) {
@@ -363,11 +371,66 @@ public final class EditorManager {
                 "Reset transformation scale.");
     }
 
-    public boolean resetEntireTransformation(Player player) {
-        return applyTransformationUtility(
+    public boolean resetYaw(Player player) {
+        return applyStateUtility(
                 player,
-                ignored -> operations.resetAll(),
+                operations::resetYaw,
+                "Reset entity yaw.");
+    }
+
+    public boolean resetPitch(Player player) {
+        return applyStateUtility(
+                player,
+                operations::resetPitch,
+                "Reset entity pitch.");
+    }
+
+    public boolean resetEntireTransformation(Player player) {
+        return applyStateUtility(
+                player,
+                operations::resetAll,
                 "Reset the entire transformation.");
+    }
+
+    public boolean isLocked(Display display) {
+        return displayLocks.isLocked(display);
+    }
+
+    public boolean lockSelectedDisplay(Player player) {
+        Objects.requireNonNull(player, "player");
+        EditorSession selected = sessions.get(player.getUniqueId());
+        if (selected == null) {
+            feedback.notice(player, "No display is selected.");
+            return false;
+        }
+
+        EditValidator.Result validation = validateOrClear(player, selected, selected.mode());
+        if (!validation.valid()) {
+            return false;
+        }
+
+        Display display = validation.display();
+        displayLocks.lock(display);
+        endEditorsForLock(display.getUniqueId(), player.getUniqueId());
+        return true;
+    }
+
+    public boolean unlockDisplay(Player player, Display display) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(display, "display");
+        EditValidator.Result validation = validator.validateSelection(player, display);
+        if (!validation.valid()) {
+            feedback.reason(player, validation.failureReason());
+            return false;
+        }
+        if (!displayLocks.isLocked(validation.display())) {
+            feedback.notice(player, "This display is already unlocked.");
+            return false;
+        }
+
+        displayLocks.unlock(validation.display());
+        feedback.success(player, "Display unlocked.");
+        return true;
     }
 
     public void clear(Player player) {
@@ -404,6 +467,31 @@ public final class EditorManager {
         return editors.size();
     }
 
+    private void endEditorsForLock(UUID displayId, UUID actorId) {
+        List<UUID> editors = new ArrayList<>();
+        for (Map.Entry<UUID, EditorSession> entry : sessions.entrySet()) {
+            if (entry.getValue().displayId().equals(displayId)) {
+                editors.add(entry.getKey());
+            }
+        }
+        pendingInputs.entrySet().removeIf(
+                entry -> displayId.equals(entry.getValue().displayId()));
+
+        for (UUID playerId : editors) {
+            Player editor = plugin.getServer().getPlayer(playerId);
+            clearPlayer(playerId, editor, false, null);
+            if (editor == null || !editor.isOnline()) {
+                continue;
+            }
+            editor.closeInventory();
+            if (playerId.equals(actorId)) {
+                feedback.success(editor, "Display locked.");
+            } else {
+                feedback.notice(editor, "Editing ended because the display was locked.");
+            }
+        }
+    }
+
     public boolean isAwaitingInput(Player player) {
         return pendingInputs.containsKey(player.getUniqueId());
     }
@@ -427,6 +515,10 @@ public final class EditorManager {
         Entity resolved = plugin.getServer().getEntity(request.displayId());
         if (!(resolved instanceof TextDisplay textDisplay)) {
             feedback.reason(player, "The text display is no longer available.");
+            return;
+        }
+        if (displayLocks.isLocked(textDisplay)) {
+            feedback.notice(player, "This display was locked before the text could be changed.");
             return;
         }
         EditValidator.Result validation = validator.validateSelection(player, textDisplay);
@@ -509,6 +601,17 @@ public final class EditorManager {
             Player player,
             UnaryOperator<Transformation> mutation,
             String successMessage) {
+        Objects.requireNonNull(mutation, "mutation");
+        return applyStateUtility(
+                player,
+                state -> state.withTransformation(mutation.apply(state.transformation())),
+                successMessage);
+    }
+
+    private boolean applyStateUtility(
+            Player player,
+            UnaryOperator<DisplayState> mutation,
+            String successMessage) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(mutation, "mutation");
         EditorSession selected = sessions.get(player.getUniqueId());
@@ -522,14 +625,13 @@ public final class EditorManager {
             return false;
         }
 
-        Transformation transformed;
+        DisplayState candidate;
         try {
-            transformed = mutation.apply(validation.state().transformation());
+            candidate = mutation.apply(validation.state());
         } catch (IllegalArgumentException exception) {
-            feedback.reason(player, "That utility would create an invalid transformation.");
+            feedback.reason(player, "That utility would create an invalid display state.");
             return false;
         }
-        DisplayState candidate = validation.state().withTransformation(transformed);
         selected.setLastFeedback(null);
         WriteResult write = writeCandidate(player, selected, validation, candidate);
         return finishUtility(player, selected, validation.display(), write, successMessage);
@@ -601,6 +703,10 @@ public final class EditorManager {
             EditorSession selected,
             EditMode mode) {
         EditValidator.Result validation = validator.validate(player, selected, mode);
+        if (validation.valid() && displayLocks.isLocked(validation.display())) {
+            validation = EditValidator.Result.failure(
+                    "The selected display is locked. Unlock it before editing.");
+        }
         if (!validation.valid()) {
             clearPlayer(
                     selected.playerId(),

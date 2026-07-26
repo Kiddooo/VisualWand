@@ -5,6 +5,7 @@ import dev.kiddo.visualwand.editor.TransformationOperations;
 import dev.kiddo.visualwand.gui.BaseGUI;
 import dev.kiddo.visualwand.gui.EditMenuGUI;
 import dev.kiddo.visualwand.gui.MainMenuGUI;
+import dev.kiddo.visualwand.gui.TransformMenuGUI;
 import dev.kiddo.visualwand.util.Lang;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
@@ -30,12 +31,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +45,11 @@ import java.util.UUID;
  * Active click editing is handled earlier by {@link EditorInputListener}.
  */
 public final class WandListener implements Listener {
+
+    private static final List<BoundingBox> ITEM_LOCAL_BOUNDS = List.of(
+            new BoundingBox(-0.5D, -0.5D, -0.5D, 0.5D, 0.5D, 0.5D));
+    private static final List<BoundingBox> TEXT_LOCAL_BOUNDS = List.of(
+            new BoundingBox(-0.75D, -0.25D, -0.1D, 0.75D, 0.5D, 0.1D));
 
     private final VisualWand plugin;
     private final Map<UUID, UUID> hoverTargets = new HashMap<>();
@@ -98,6 +101,12 @@ public final class WandListener implements Listener {
         Display display = getTargetedDisplay(player);
         if (display == null) {
             openCreateMenu(player);
+            return;
+        }
+        if (plugin.getEditorManager().isLocked(display)) {
+            player.sendMessage(Lang.getPrefixed(
+                    "&eThis display is locked. Use the redstone torch to unlock it."));
+            new TransformMenuGUI(plugin, player, display).open();
             return;
         }
 
@@ -258,7 +267,9 @@ public final class WandListener implements Listener {
                     display,
                     rayStart,
                     rayDirection,
-                    maximumDistance);
+                    maximumDistance,
+                    eye.getYaw(),
+                    eye.getPitch());
             if (hitDistance >= 0.0D && hitDistance < bestDistance) {
                 bestDistance = hitDistance;
                 bestDisplay = display;
@@ -271,81 +282,65 @@ public final class WandListener implements Listener {
             Display display,
             Vector rayStart,
             Vector rayDirection,
-            double maximumDistance) {
+            double maximumDistance,
+            float cameraYaw,
+            float cameraPitch) {
+        List<BoundingBox> localBounds;
+        DisplayHitbox.ModelTransform modelTransform = DisplayHitbox.ModelTransform.IDENTITY;
         if (display instanceof BlockDisplay blockDisplay) {
-            double blockDistance = getBlockDisplayHitDistance(
-                    blockDisplay,
-                    rayStart,
-                    rayDirection,
-                    maximumDistance);
-            if (blockDistance >= 0.0D) {
-                return blockDistance;
-            }
+            localBounds = getBlockDisplayLocalBounds(blockDisplay);
+        } else if (display instanceof ItemDisplay itemDisplay) {
+            localBounds = ITEM_LOCAL_BOUNDS;
+            modelTransform = DisplayHitbox.itemModelTransform(
+                    itemDisplay.getItemDisplayTransform(),
+                    itemDisplay.getItemStack().getType().isBlock());
+        } else if (display instanceof TextDisplay) {
+            localBounds = TEXT_LOCAL_BOUNDS;
+        } else {
+            return -1.0D;
+        }
+        if (localBounds.isEmpty()) {
+            return -1.0D;
         }
 
-        RayTraceResult hit = getSimpleDisplaySelectionBox(display).rayTrace(
+        Location location = display.getLocation();
+        return DisplayHitbox.rayTrace(
                 rayStart,
                 rayDirection,
-                maximumDistance);
-        return hit == null ? -1.0D : hit.getHitPosition().distance(rayStart);
+                maximumDistance,
+                location.toVector(),
+                DisplayHitbox.facingRotation(
+                        display.getBillboard(),
+                        location.getYaw(),
+                        location.getPitch(),
+                        cameraYaw,
+                        cameraPitch),
+                display.getTransformation(),
+                modelTransform,
+                localBounds);
     }
 
     /**
-     * Tests a block display against the vanilla block state's voxel shape in display-local
-     * coordinates, preserving strict selection for non-cube blocks.
+     * Returns the vanilla block state's voxel shape in display-local coordinates.
      */
-    private double getBlockDisplayHitDistance(
-            BlockDisplay display,
-            Vector rayStart,
-            Vector rayDirection,
-            double maximumDistance) {
+    private List<BoundingBox> getBlockDisplayLocalBounds(BlockDisplay display) {
         VoxelShape shape = getBlockDisplayVoxelShape(display);
         if (shape == null || shape.isEmpty()) {
-            return -1.0D;
+            return List.of();
         }
 
-        Location origin = display.getLocation();
-        Transformation transformation = display.getTransformation();
-        Vector rayEnd = rayStart.clone().add(rayDirection.clone().multiply(maximumDistance));
-        Vector localStart = worldToDisplayLocal(origin, transformation, rayStart);
-        Vector localEnd = worldToDisplayLocal(origin, transformation, rayEnd);
-        Vector localDirection = localEnd.clone().subtract(localStart);
-        double localMaximumDistance = localDirection.length();
-        if (!Double.isFinite(localMaximumDistance) || localMaximumDistance <= 1.0E-8D) {
-            return -1.0D;
-        }
-        localDirection.normalize();
-
-        double bestDistance = -1.0D;
-        for (AABB localBox : shape.toAabbs()) {
-            BoundingBox selectionBox = new BoundingBox(
+        List<AABB> shapeBoxes = shape.toAabbs();
+        List<BoundingBox> localBounds = new ArrayList<>(shapeBoxes.size());
+        for (AABB localBox : shapeBoxes) {
+            localBounds.add(new BoundingBox(
                     localBox.minX,
                     localBox.minY,
                     localBox.minZ,
                     localBox.maxX,
                     localBox.maxY,
-                    localBox.maxZ).expand(0.002D);
-            RayTraceResult localHit = selectionBox.rayTrace(
-                    localStart,
-                    localDirection,
-                    localMaximumDistance);
-            if (localHit == null) {
-                continue;
-            }
-
-            Vector worldHit = displayLocalToWorld(
-                    origin,
-                    transformation,
-                    localHit.getHitPosition());
-            double worldDistance = worldHit.distance(rayStart);
-            if (!Double.isFinite(worldDistance) || worldDistance > maximumDistance) {
-                continue;
-            }
-            if (bestDistance < 0.0D || worldDistance < bestDistance) {
-                bestDistance = worldDistance;
-            }
+                    localBox.maxZ));
         }
-        return bestDistance;
+        return localBounds;
     }
 
     private VoxelShape getBlockDisplayVoxelShape(BlockDisplay display) {
@@ -361,85 +356,6 @@ public final class WandListener implements Listener {
                 location.getY(),
                 location.getZ());
         return blockState.getShape(craftWorld.getHandle(), blockPosition);
-    }
-
-    private Vector worldToDisplayLocal(
-            Location origin,
-            Transformation transformation,
-            Vector worldPoint) {
-        Vector3f point = new Vector3f(
-                (float) (worldPoint.getX() - origin.getX()),
-                (float) (worldPoint.getY() - origin.getY()),
-                (float) (worldPoint.getZ() - origin.getZ()));
-        point.sub(transformation.getTranslation());
-
-        new Quaternionf(transformation.getLeftRotation()).invert().transform(point);
-        Vector3f scale = transformation.getScale();
-        point.set(
-                divideByScale(point.x, scale.x),
-                divideByScale(point.y, scale.y),
-                divideByScale(point.z, scale.z));
-        new Quaternionf(transformation.getRightRotation()).invert().transform(point);
-        return new Vector(point.x, point.y, point.z);
-    }
-
-    private Vector displayLocalToWorld(
-            Location origin,
-            Transformation transformation,
-            Vector localPoint) {
-        Vector3f point = new Vector3f(
-                (float) localPoint.getX(),
-                (float) localPoint.getY(),
-                (float) localPoint.getZ());
-        new Quaternionf(transformation.getRightRotation()).transform(point);
-        point.mul(transformation.getScale());
-        new Quaternionf(transformation.getLeftRotation()).transform(point);
-        point.add(transformation.getTranslation());
-        return new Vector(
-                origin.getX() + point.x,
-                origin.getY() + point.y,
-                origin.getZ() + point.z);
-    }
-
-    private static float divideByScale(float value, float scale) {
-        if (Math.abs(scale) <= 1.0E-6F) {
-            return value / (scale < 0.0F ? -1.0E-6F : 1.0E-6F);
-        }
-        return value / scale;
-    }
-
-    private BoundingBox getSimpleDisplaySelectionBox(Display display) {
-        Location location = display.getLocation();
-        return switch (display) {
-            case BlockDisplay ignored -> new BoundingBox(
-                    location.getX(),
-                    location.getY(),
-                    location.getZ(),
-                    location.getX() + 1.0D,
-                    location.getY() + 1.0D,
-                    location.getZ() + 1.0D);
-            case ItemDisplay ignored -> new BoundingBox(
-                    location.getX() - 0.5D,
-                    location.getY() - 0.25D,
-                    location.getZ() - 0.5D,
-                    location.getX() + 0.5D,
-                    location.getY() + 0.75D,
-                    location.getZ() + 0.5D);
-            case TextDisplay ignored -> new BoundingBox(
-                    location.getX() - 0.75D,
-                    location.getY() - 0.25D,
-                    location.getZ() - 0.1D,
-                    location.getX() + 0.75D,
-                    location.getY() + 0.5D,
-                    location.getZ() + 0.1D);
-            default -> new BoundingBox(
-                    location.getX() - 0.5D,
-                    location.getY() - 0.5D,
-                    location.getZ() - 0.5D,
-                    location.getX() + 0.5D,
-                    location.getY() + 0.5D,
-                    location.getZ() + 0.5D);
-        };
     }
 
     private Component describeDisplay(Display display, double distance) {
@@ -482,6 +398,14 @@ public final class WandListener implements Listener {
         if (display == null) {
             clearDeleteConfirmation(player);
             player.sendMessage(Lang.getPrefixed("&cNo display object found in line of sight!"));
+            return;
+        }
+
+        if (plugin.getEditorManager().isLocked(display)) {
+            clearDeleteConfirmation(player);
+            player.sendMessage(Lang.getPrefixed(
+                    "&eThis display is locked. Use the redstone torch to unlock it."));
+            new TransformMenuGUI(plugin, player, display).open();
             return;
         }
 

@@ -15,6 +15,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NonNull;
 
+import java.util.UUID;
+
 public class TextColorGUI extends BaseGUI {
 
     private final TextDisplay textDisplay;
@@ -42,6 +44,11 @@ public class TextColorGUI extends BaseGUI {
     public TextColorGUI(VisualWand plugin, Player player, TextDisplay textDisplay) {
         super(plugin, player);
         this.textDisplay = textDisplay;
+    }
+
+    @Override
+    public UUID targetDisplayId() {
+        return textDisplay.getUniqueId();
     }
 
     @Override

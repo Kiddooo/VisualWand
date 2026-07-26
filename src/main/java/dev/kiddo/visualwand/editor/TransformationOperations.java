@@ -159,12 +159,44 @@ public final class TransformationOperations {
                 copyQuaternion(source.getRightRotation()));
     }
 
-    public Transformation resetAll() {
-        return new Transformation(
-                new Vector3f(),
-                new Quaternionf(),
-                new Vector3f(1.0F, 1.0F, 1.0F),
-                new Quaternionf());
+    public DisplayState resetYaw(DisplayState source) {
+        Objects.requireNonNull(source, "source");
+        if (!isFinite(source)) {
+            throw new IllegalArgumentException("source state must contain only finite components");
+        }
+
+        Location location = source.location();
+        location.setYaw(0.0F);
+        return source.withLocation(location);
+    }
+
+    public DisplayState resetPitch(DisplayState source) {
+        Objects.requireNonNull(source, "source");
+        if (!isFinite(source)) {
+            throw new IllegalArgumentException("source state must contain only finite components");
+        }
+
+        Location location = source.location();
+        location.setPitch(0.0F);
+        return source.withLocation(location);
+    }
+
+    public DisplayState resetAll(DisplayState source) {
+        Objects.requireNonNull(source, "source");
+        if (!isFinite(source)) {
+            throw new IllegalArgumentException("source state must contain only finite components");
+        }
+
+        Location location = source.location();
+        location.setYaw(0.0F);
+        location.setPitch(0.0F);
+        return new DisplayState(
+                location,
+                new Transformation(
+                        new Vector3f(),
+                        new Quaternionf(),
+                        new Vector3f(1.0F, 1.0F, 1.0F),
+                        new Quaternionf()));
     }
 
     public static Location copyLocation(Location source) {

@@ -35,6 +35,14 @@ public final class TransformMenuGUI extends BaseGUI {
     protected void createInventory() {
         inventory = Bukkit.createInventory(this, 54, Lang.getComponent("&8✦ &6Click Editing"));
         fillBorder();
+        Display display = resolveDisplay();
+        if (display != null && plugin.getEditorManager().isLocked(display)) {
+            renderLockedItems();
+            inventory.setItem(53, getCloseButton());
+            fillEmpty(Material.BLACK_STAINED_GLASS_PANE);
+            return;
+        }
+
         renderModeItems();
         renderPresetItems();
         renderUtilityItems();
@@ -44,8 +52,33 @@ public final class TransformMenuGUI extends BaseGUI {
     }
 
     @Override
+    public UUID targetDisplayId() {
+        return displayId;
+    }
+
+    @Override
+    public boolean allowsLockedClick(int slot) {
+        return slot == 16 || slot == 53;
+    }
+
+    @Override
     public void handleClick(int slot, ItemStack item, ClickType clickType) {
         EditorManager manager = plugin.getEditorManager();
+        Display display = resolveDisplay();
+        if (display == null || !display.isValid()) {
+            player.closeInventory();
+            player.sendMessage(Lang.getPrefixed("&cThe selected display is no longer available."));
+            return;
+        }
+        if (manager.isLocked(display)) {
+            if (slot == 16 && manager.unlockDisplay(player, display)
+                    && manager.select(player, display)) {
+                new TransformMenuGUI(plugin, player, display).open();
+            } else if (slot == 53) {
+                player.closeInventory();
+            }
+            return;
+        }
         EditMode mode = modeForSlot(slot);
         if (mode != null) {
             manager.selectMode(player, mode);
@@ -62,28 +95,28 @@ public final class TransformMenuGUI extends BaseGUI {
             return;
         }
 
+
         switch (slot) {
             case 13 -> manager.undo(player);
             case 14 -> manager.copy(player);
             case 15 -> manager.paste(player);
-            case 16 -> {
-                manager.cancelEditing(player);
-                player.closeInventory();
-            }
+            case 16 -> manager.lockSelectedDisplay(player);
             case 22 -> {
                 manager.clear(player);
                 player.closeInventory();
                 player.sendMessage(Lang.getPrefixed("&eDisplay deselected."));
             }
-            case 40 -> manager.resetTranslation(player);
-            case 41 -> manager.resetRotations(player);
-            case 42 -> manager.resetScale(player);
-            case 43 -> manager.resetEntireTransformation(player);
+            case 31 -> manager.resetYaw(player);
+            case 40 -> manager.resetPitch(player);
+            case 41 -> manager.resetTranslation(player);
+            case 42 -> manager.resetRotations(player);
+            case 43 -> manager.resetScale(player);
+            case 49 -> manager.resetEntireTransformation(player);
             case 45 -> {
-                Display display = manager.selectedDisplay(player);
+                Display selectedDisplay = manager.selectedDisplay(player);
                 player.closeInventory();
-                if (display != null && display.getUniqueId().equals(displayId)) {
-                    new EditMenuGUI(plugin, player, display).open();
+                if (selectedDisplay != null && selectedDisplay.getUniqueId().equals(displayId)) {
+                    new EditMenuGUI(plugin, player, selectedDisplay).open();
                 }
             }
             case 53 -> player.closeInventory();
@@ -100,16 +133,17 @@ public final class TransformMenuGUI extends BaseGUI {
         setModeItem(19, EditMode.LEFT_ROTATION_X);
         setModeItem(20, EditMode.LEFT_ROTATION_Y);
         setModeItem(21, EditMode.LEFT_ROTATION_Z);
-        setModeItem(23, EditMode.RIGHT_ROTATION_X);
-        setModeItem(24, EditMode.RIGHT_ROTATION_Y);
-        setModeItem(25, EditMode.RIGHT_ROTATION_Z);
 
         setModeItem(28, EditMode.SCALE_X);
         setModeItem(29, EditMode.SCALE_Y);
         setModeItem(30, EditMode.SCALE_Z);
-        setModeItem(31, EditMode.UNIFORM_SCALE);
-        setModeItem(32, EditMode.ENTITY_YAW);
-        setModeItem(33, EditMode.ENTITY_PITCH);
+        setModeItem(32, EditMode.UNIFORM_SCALE);
+        setModeItem(33, EditMode.ENTITY_YAW);
+        setModeItem(34, EditMode.ENTITY_PITCH);
+
+        setModeItem(37, EditMode.RIGHT_ROTATION_X);
+        setModeItem(38, EditMode.RIGHT_ROTATION_Y);
+        setModeItem(39, EditMode.RIGHT_ROTATION_Z);
     }
 
     private void setModeItem(int slot, EditMode mode) {
@@ -133,9 +167,9 @@ public final class TransformMenuGUI extends BaseGUI {
     private void renderPresetItems() {
         EditorSession session = plugin.getEditorManager().session(player);
         StepPreset selected = session == null ? StepPreset.NORMAL : session.preset();
-        setPresetItem(37, StepPreset.FINE, Material.IRON_NUGGET, selected);
-        setPresetItem(38, StepPreset.NORMAL, Material.GOLD_NUGGET, selected);
-        setPresetItem(39, StepPreset.COARSE, Material.NETHERITE_INGOT, selected);
+        setPresetItem(23, StepPreset.FINE, Material.IRON_NUGGET, selected);
+        setPresetItem(24, StepPreset.NORMAL, Material.GOLD_NUGGET, selected);
+        setPresetItem(25, StepPreset.COARSE, Material.NETHERITE_INGOT, selected);
     }
 
     private void setPresetItem(
@@ -175,28 +209,49 @@ public final class TransformMenuGUI extends BaseGUI {
                 "&7Paste the copied transformation onto this display."));
         inventory.setItem(16, utility(
                 Material.REDSTONE_TORCH,
-                "&eCancel Editing",
-                "&7Deactivate click input but keep this display selected."));
+                "&cLock Display",
+                "&7Block all interaction until this display is unlocked."));
         inventory.setItem(22, utility(
                 Material.LEAD,
                 "&cDeselect",
                 "&7End editing and restore selection feedback."));
+        inventory.setItem(31, utility(
+                Material.NETHERITE_BLOCK,
+                "&eReset Yaw",
+                "&7Set entity yaw to zero."));
         inventory.setItem(40, utility(
+                Material.BEDROCK,
+                "&eReset Pitch",
+                "&7Set entity pitch to zero."));
+        inventory.setItem(41, utility(
                 Material.ENDER_PEARL,
                 "&eReset Transform Translation",
                 "&7Set transformation translation to zero."));
-        inventory.setItem(41, utility(
+        inventory.setItem(42, utility(
                 Material.ENDER_EYE,
                 "&eReset Rotations",
                 "&7Reset both left and right quaternions."));
-        inventory.setItem(42, utility(
+        inventory.setItem(43, utility(
                 Material.SLIME_BALL,
                 "&eReset Scale",
                 "&7Set transformation scale to one."));
-        inventory.setItem(43, utility(
-                Material.TARGET,
+        inventory.setItem(49, utility(
+                Material.RED_STAINED_GLASS_PANE,
                 "&cReset Entire Transformation",
-                "&7Reset translation, rotations, and scale."));
+                "&7Reset translation, rotations, scale, yaw, and pitch."));
+    }
+
+    private void renderLockedItems() {
+        inventory.setItem(16, utility(
+                Material.REDSTONE_TORCH,
+                "&aUnlock Display",
+                "&7Allow this display to be edited again."));
+    }
+
+    private Display resolveDisplay() {
+        return plugin.getServer().getEntity(displayId) instanceof Display display
+                ? display
+                : null;
     }
 
     private ItemStack utility(Material material, String name, String description) {
@@ -214,24 +269,24 @@ public final class TransformMenuGUI extends BaseGUI {
             case 19 -> EditMode.LEFT_ROTATION_X;
             case 20 -> EditMode.LEFT_ROTATION_Y;
             case 21 -> EditMode.LEFT_ROTATION_Z;
-            case 23 -> EditMode.RIGHT_ROTATION_X;
-            case 24 -> EditMode.RIGHT_ROTATION_Y;
-            case 25 -> EditMode.RIGHT_ROTATION_Z;
             case 28 -> EditMode.SCALE_X;
             case 29 -> EditMode.SCALE_Y;
             case 30 -> EditMode.SCALE_Z;
-            case 31 -> EditMode.UNIFORM_SCALE;
-            case 32 -> EditMode.ENTITY_YAW;
-            case 33 -> EditMode.ENTITY_PITCH;
+            case 32 -> EditMode.UNIFORM_SCALE;
+            case 33 -> EditMode.ENTITY_YAW;
+            case 34 -> EditMode.ENTITY_PITCH;
+            case 37 -> EditMode.RIGHT_ROTATION_X;
+            case 38 -> EditMode.RIGHT_ROTATION_Y;
+            case 39 -> EditMode.RIGHT_ROTATION_Z;
             default -> null;
         };
     }
 
     private static StepPreset presetForSlot(int slot) {
         return switch (slot) {
-            case 37 -> StepPreset.FINE;
-            case 38 -> StepPreset.NORMAL;
-            case 39 -> StepPreset.COARSE;
+            case 23 -> StepPreset.FINE;
+            case 24 -> StepPreset.NORMAL;
+            case 25 -> StepPreset.COARSE;
             default -> null;
         };
     }

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class BaseGUI implements InventoryHolder {
 
@@ -33,6 +34,14 @@ public abstract class BaseGUI implements InventoryHolder {
     @SuppressWarnings("EmptyMethod")
     public void handleClose() {
         // Override in subclasses if needed
+    }
+
+    public UUID targetDisplayId() {
+        return null;
+    }
+
+    public boolean allowsLockedClick(int slot) {
+        return false;
     }
 
     public void open() {

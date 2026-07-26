@@ -2,9 +2,13 @@ package dev.kiddo.visualwand.listener;
 
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.gui.BaseGUI;
+import dev.kiddo.visualwand.gui.TransformMenuGUI;
+import dev.kiddo.visualwand.util.Lang;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -29,11 +33,36 @@ public class GUIListener implements Listener {
         
         if (holder instanceof BaseGUI gui) {
             event.setCancelled(true);
+            if (event.getClickedInventory() != event.getInventory()) {
+                return;
+            }
             
             if (event.getCurrentItem() != null) {
+                if (blocksLockedInteraction(gui, event.getSlot(), (Player) event.getWhoClicked())) {
+                    return;
+                }
                 gui.handleClick(event.getSlot(), event.getCurrentItem(), event.getClick());
             }
         }
+    }
+
+    private boolean blocksLockedInteraction(BaseGUI gui, int slot, Player player) {
+        if (gui.targetDisplayId() == null || gui.allowsLockedClick(slot)) {
+            return false;
+        }
+
+        Entity resolved = plugin.getServer().getEntity(gui.targetDisplayId());
+        if (!(resolved instanceof Display display)
+                || !plugin.getEditorManager().isLocked(display)) {
+            return false;
+        }
+
+        player.sendMessage(Lang.getPrefixed(
+                "&eThis display is locked. Use the redstone torch to unlock it."));
+        if (!(gui instanceof TransformMenuGUI)) {
+            new TransformMenuGUI(plugin, player, display).open();
+        }
+        return true;
     }
 
     @EventHandler

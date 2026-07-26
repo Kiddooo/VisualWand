@@ -1,6 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
 import java.util.List;
+import java.util.UUID;
 
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.animation.AnimationType;
@@ -19,6 +20,11 @@ public class AnimationMenuGUI extends BaseGUI {
     public AnimationMenuGUI(VisualWand plugin, Player player, Display display) {
         super(plugin, player);
         this.display = display;
+    }
+
+    @Override
+    public UUID targetDisplayId() {
+        return display.getUniqueId();
     }
 
     @Override

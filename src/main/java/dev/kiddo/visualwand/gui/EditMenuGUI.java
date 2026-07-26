@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.UUID;
 
 public class EditMenuGUI extends BaseGUI {
 
@@ -21,6 +22,11 @@ public class EditMenuGUI extends BaseGUI {
     public EditMenuGUI(VisualWand plugin, Player player, Display display) {
         super(plugin, player);
         this.display = display;
+    }
+
+    @Override
+    public UUID targetDisplayId() {
+        return display.getUniqueId();
     }
 
     @Override

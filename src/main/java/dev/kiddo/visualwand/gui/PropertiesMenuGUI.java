@@ -1,6 +1,7 @@
 package dev.kiddo.visualwand.gui;
 
 import java.util.List;
+import java.util.UUID;
 
 import dev.kiddo.visualwand.VisualWand;
 import dev.kiddo.visualwand.util.DisplayPropertyUtil;
@@ -24,6 +25,11 @@ public class PropertiesMenuGUI extends BaseGUI {
     public PropertiesMenuGUI(VisualWand plugin, Player player, Display display) {
         super(plugin, player);
         this.display = display;
+    }
+
+    @Override
+    public UUID targetDisplayId() {
+        return display.getUniqueId();
     }
 
     @Override
