@@ -113,7 +113,7 @@ public final class WandListener implements Listener {
         showCycleTarget(player, target);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
@@ -130,6 +130,10 @@ public final class WandListener implements Listener {
 
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        if (action == Action.RIGHT_CLICK_BLOCK
+                && event.useInteractedBlock() == Event.Result.DENY) {
             return;
         }
 
