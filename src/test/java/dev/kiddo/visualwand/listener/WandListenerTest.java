@@ -199,6 +199,49 @@ class WandListenerTest {
     }
 
     @Test
+    void previewOutsideCurrentConeRightClickFailsClosed() {
+        TextDisplay display = eligibleTextDisplay(new UUID(15L, 16L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        when(server.getEntity(display.getUniqueId())).thenReturn(display);
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 2, 3));
+
+        Location lookingAway = new Location(world, 0.0D, 64.0D, 0.0D, 180.0F, 0.0F);
+        when(player.getEyeLocation()).thenReturn(lookingAway);
+        clearInvocations(editorManager, player);
+        PlayerInteractEvent event = mock(PlayerInteractEvent.class);
+        when(event.getHand()).thenReturn(EquipmentSlot.HAND);
+        when(event.getPlayer()).thenReturn(player);
+        when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR);
+
+        listener.onPlayerInteract(event);
+
+        verify(editorManager, never()).select(any(), any());
+        verify(player).sendActionBar(any(Component.class));
+    }
+
+    @Test
+    void laterAcceptedStepAlsoClearsAnExistingEditorSession() {
+        TextDisplay display = eligibleTextDisplay(new UUID(17L, 18L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        when(server.getEntity(display.getUniqueId())).thenReturn(display);
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 2, 3));
+
+        when(editorManager.session(player)).thenReturn(mock(EditorSession.class));
+        clearInvocations(editorManager);
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 3, 4));
+
+        verify(editorManager).clear(player);
+    }
+
+    @Test
     void laterStepKeepsOriginalRingAndSkipsAnIneligibleUuid() {
         TextDisplay first = eligibleTextDisplay(new UUID(9L, 10L), 3.0D);
         TextDisplay second = eligibleTextDisplay(new UUID(11L, 12L), 4.0D);
@@ -259,6 +302,30 @@ class WandListenerTest {
                 "editor.targeting.highlight-enabled", true)).thenReturn(false);
         when(editorManager.session(player)).thenReturn(mock(EditorSession.class));
         hoverRunnable.run();
+        clearInvocations(editorManager);
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 3, 4));
+
+        verify(editorManager).clear(player);
+    }
+
+    @Test
+    void disabledHighlightTickClearsCycleWhenPreviewBecomesIneligible() {
+        TextDisplay display = eligibleTextDisplay(new UUID(19L, 20L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        when(server.getEntity(display.getUniqueId())).thenReturn(display);
+        doReturn(List.of(player)).when(server).getOnlinePlayers();
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 2, 3));
+
+        when(bukkitConfiguration.getBoolean(
+                "editor.targeting.highlight-enabled", true)).thenReturn(false);
+        when(display.isValid()).thenReturn(false);
+        hoverRunnable.run();
+        when(editorManager.session(player)).thenReturn(mock(EditorSession.class));
         clearInvocations(editorManager);
 
         listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 3, 4));

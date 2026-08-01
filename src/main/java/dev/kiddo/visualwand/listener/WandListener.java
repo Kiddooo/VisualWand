@@ -85,11 +85,11 @@ public final class WandListener implements Listener {
 
         event.setCancelled(true);
         UUID playerId = player.getUniqueId();
+        if (plugin.getEditorManager().session(player) != null) {
+            plugin.getEditorManager().clear(player);
+        }
         DisplayCycle cycle = displayCycles.get(playerId);
         if (cycle == null) {
-            if (plugin.getEditorManager().session(player) != null) {
-                plugin.getEditorManager().clear(player);
-            }
             startDisplayCycle(player, direction);
             return;
         }
@@ -212,8 +212,15 @@ public final class WandListener implements Listener {
                 clearHover(playerId);
             }
             for (Player player : plugin.getServer().getOnlinePlayers()) {
-                if (displayCycles.containsKey(player.getUniqueId())
-                        && !isValidHoverContext(player)) {
+                DisplayCycle cycle = displayCycles.get(player.getUniqueId());
+                if (cycle != null
+                        && (!isValidHoverContext(player)
+                                || resolveEligibleDisplay(
+                                        player,
+                                        cycle.current(),
+                                        plugin.getEditorManager()
+                                                .configuration()
+                                                .targetCycleRange()) == null)) {
                     clearDisplayCycle(player.getUniqueId());
                 }
             }
@@ -404,38 +411,49 @@ public final class WandListener implements Listener {
             Vector viewDirection,
             double rangeSquared,
             Entity entity) {
-        if (!(entity instanceof Display display)
-                || !isEligibleDisplay(player, eye, display, rangeSquared)) {
+        if (!(entity instanceof Display display) || !isSupportedDisplay(display)) {
             return null;
         }
-        Vector eyeToDisplay = display.getLocation().toVector().subtract(eye.toVector());
-        return DisplayCycle.candidate(display.getUniqueId(), viewDirection, eyeToDisplay);
+        return eligibleCycleCandidate(
+                player, eye, viewDirection, display, rangeSquared);
     }
 
     private Display resolveEligibleDisplay(Player player, UUID displayId, double range) {
         Entity resolved = plugin.getServer().getEntity(displayId);
-        if (!(resolved instanceof Display display)
-                || !isSupportedDisplay(display)
-                || !isEligibleDisplay(player, player.getEyeLocation(), display, range * range)) {
+        if (!(resolved instanceof Display display) || !isSupportedDisplay(display)) {
+            return null;
+        }
+        Location eye = player.getEyeLocation();
+        if (eligibleCycleCandidate(
+                player,
+                eye,
+                normalizedDirection(eye),
+                display,
+                range * range) == null) {
             return null;
         }
         return display;
     }
 
-    private static boolean isEligibleDisplay(
+    private static DisplayCycle.Candidate eligibleCycleCandidate(
             Player player,
             Location eye,
+            Vector viewDirection,
             Display display,
             double rangeSquared) {
         Location location = display.getLocation();
-        return display.isValid()
-                && display.getWorld().equals(player.getWorld())
-                && TransformationOperations.isFinite(eye)
-                && TransformationOperations.isFinite(location)
-                && TransformationOperations.isFinite(display.getTransformation())
-                && Double.isFinite(rangeSquared)
-                && eye.distanceSquared(location) <= rangeSquared
-                && player.hasLineOfSight(display);
+        if (!display.isValid()
+                || !display.getWorld().equals(player.getWorld())
+                || !TransformationOperations.isFinite(eye)
+                || !TransformationOperations.isFinite(location)
+                || !TransformationOperations.isFinite(display.getTransformation())
+                || !Double.isFinite(rangeSquared)
+                || eye.distanceSquared(location) > rangeSquared
+                || !player.hasLineOfSight(display)) {
+            return null;
+        }
+        Vector eyeToDisplay = location.toVector().subtract(eye.toVector());
+        return DisplayCycle.candidate(display.getUniqueId(), viewDirection, eyeToDisplay);
     }
 
     /**
