@@ -3,6 +3,7 @@ package dev.kiddo.visualwand.listener;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +27,10 @@ class DisplayCycleTest {
         assertSame(DisplayCycle.Direction.BACKWARD, DisplayCycle.Direction.fromSlots(4, 3));
         assertSame(DisplayCycle.Direction.BACKWARD, DisplayCycle.Direction.fromSlots(0, 8));
         assertNull(DisplayCycle.Direction.fromSlots(1, 5));
+        assertNull(DisplayCycle.Direction.fromSlots(-1, 0));
+        assertNull(DisplayCycle.Direction.fromSlots(9, 1));
+        assertNull(DisplayCycle.Direction.fromSlots(0, -1));
+        assertNull(DisplayCycle.Direction.fromSlots(8, 9));
     }
 
     @Test
@@ -46,6 +51,10 @@ class DisplayCycleTest {
         assertNull(outside);
         assertEquals(C, largeParallel.displayId());
         assertNull(DisplayCycle.candidate(A, new Vector(), new Vector(0.0D, 0.0D, 1.0D)));
+        assertNull(DisplayCycle.candidate(
+                A,
+                new Vector(1.0E-7D, 0.0D, 0.0D),
+                new Vector(1.0D, 0.0D, 0.0D)));
         assertNull(DisplayCycle.candidate(A, view, new Vector(Double.NaN, 0.0D, 1.0D)));
     }
 
@@ -65,6 +74,7 @@ class DisplayCycleTest {
         assertEquals(C, cycle.advance(DisplayCycle.Direction.FORWARD, ignored -> true));
         assertEquals(D, cycle.advance(DisplayCycle.Direction.FORWARD, ignored -> true));
         assertEquals(A, cycle.advance(DisplayCycle.Direction.FORWARD, ignored -> true));
+        assertEquals(B, cycle.advance(DisplayCycle.Direction.FORWARD, ignored -> true));
         assertThrows(IllegalArgumentException.class,
                 () -> new DisplayCycle.Candidate(A, Double.NaN, 1.0D));
         assertThrows(IllegalArgumentException.class,
@@ -75,9 +85,15 @@ class DisplayCycleTest {
 
     @Test
     void exactHoverIsStartingPointBeforeRequestedAdvance() {
-        DisplayCycle cycle = DisplayCycle.start(candidates(), B, DisplayCycle.Direction.FORWARD);
+        List<DisplayCycle.Candidate> source = new ArrayList<>(candidates());
+        DisplayCycle cycle = DisplayCycle.start(source, B, DisplayCycle.Direction.FORWARD);
+
+        source.clear();
+        source.add(new DisplayCycle.Candidate(D, 1.0D, 1.0D));
 
         assertEquals(C, cycle.current());
+        assertEquals(A, cycle.advance(DisplayCycle.Direction.FORWARD, ignored -> true));
+        assertNull(DisplayCycle.start(List.of(), null, DisplayCycle.Direction.FORWARD));
     }
 
     @Test

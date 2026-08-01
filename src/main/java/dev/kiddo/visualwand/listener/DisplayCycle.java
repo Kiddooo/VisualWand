@@ -121,6 +121,9 @@ final class DisplayCycle {
         }
 
         static Direction fromSlots(int previousSlot, int newSlot) {
+            if (previousSlot < 0 || previousSlot >= 9 || newSlot < 0 || newSlot >= 9) {
+                return null;
+            }
             if (newSlot == Math.floorMod(previousSlot + 1, 9)) {
                 return FORWARD;
             }
