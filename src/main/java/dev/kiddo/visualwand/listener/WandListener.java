@@ -37,9 +37,11 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -58,6 +60,7 @@ public final class WandListener implements Listener {
     private final Map<UUID, HighlightState> highlightStates = new HashMap<>();
     private final Map<UUID, DeleteConfirmation> deleteConfirmations = new HashMap<>();
     private final Map<UUID, DisplayCycle> displayCycles = new HashMap<>();
+    private final Set<UUID> failedDisplayCycles = new HashSet<>();
     private final BukkitTask hoverTask;
     private long hoverTicks;
 
@@ -85,6 +88,7 @@ public final class WandListener implements Listener {
 
         event.setCancelled(true);
         UUID playerId = player.getUniqueId();
+        failedDisplayCycles.remove(playerId);
         if (plugin.getEditorManager().session(player) != null) {
             plugin.getEditorManager().clear(player);
         }
@@ -106,7 +110,7 @@ public final class WandListener implements Listener {
             clearDisplayCycle(playerId);
             return;
         }
-        setHoverTarget(playerId, target);
+        setCycleHoverTarget(playerId, target);
         showCycleTarget(player, target);
     }
 
@@ -132,7 +136,7 @@ public final class WandListener implements Listener {
 
         UUID playerId = player.getUniqueId();
         DisplayCycle cycle = displayCycles.get(playerId);
-        boolean hadCycle = cycle != null;
+        boolean hadCycle = cycle != null || failedDisplayCycles.contains(playerId);
         Display cycleTarget = cycle == null
                 ? null
                 : resolveEligibleDisplay(
@@ -148,7 +152,7 @@ public final class WandListener implements Listener {
         if (hadCycle) {
             clearDeleteConfirmation(player);
             if (cycleTarget == null) {
-                player.sendActionBar(Lang.getComponent("&eThat display is no longer available."));
+                showUnavailableCycle(player);
                 return;
             }
             selectDisplay(player, cycleTarget);
@@ -185,6 +189,7 @@ public final class WandListener implements Listener {
         }
         restoreRemainingHighlights();
         displayCycles.clear();
+        failedDisplayCycles.clear();
         deleteConfirmations.clear();
     }
 
@@ -197,6 +202,7 @@ public final class WandListener implements Listener {
         }
         restoreRemainingHighlights();
         displayCycles.clear();
+        failedDisplayCycles.clear();
         deleteConfirmations.clear();
     }
 
@@ -212,16 +218,20 @@ public final class WandListener implements Listener {
                 clearHover(playerId);
             }
             for (Player player : plugin.getServer().getOnlinePlayers()) {
-                DisplayCycle cycle = displayCycles.get(player.getUniqueId());
-                if (cycle != null
-                        && (!isValidHoverContext(player)
-                                || resolveEligibleDisplay(
-                                        player,
-                                        cycle.current(),
-                                        plugin.getEditorManager()
-                                                .configuration()
-                                                .targetCycleRange()) == null)) {
-                    clearDisplayCycle(player.getUniqueId());
+                UUID playerId = player.getUniqueId();
+                DisplayCycle cycle = displayCycles.get(playerId);
+                if (!isValidHoverContext(player)) {
+                    if (cycle != null || failedDisplayCycles.contains(playerId)) {
+                        clearDisplayCycle(playerId);
+                    }
+                } else if (cycle != null
+                        && resolveEligibleDisplay(
+                                player,
+                                cycle.current(),
+                                plugin.getEditorManager()
+                                        .configuration()
+                                        .targetCycleRange()) == null) {
+                    failDisplayCycle(player);
                 }
             }
         } else if (hoverTicks % interval == 0L) {
@@ -238,6 +248,10 @@ public final class WandListener implements Listener {
             clearDisplayCycle(playerId);
             return;
         }
+        if (failedDisplayCycles.contains(playerId)) {
+            clearHover(playerId);
+            return;
+        }
 
         DisplayCycle cycle = displayCycles.get(playerId);
         if (cycle != null) {
@@ -246,10 +260,10 @@ public final class WandListener implements Listener {
                     cycle.current(),
                     plugin.getEditorManager().configuration().targetCycleRange());
             if (target == null) {
-                clearDisplayCycle(playerId);
+                failDisplayCycle(player);
                 return;
             }
-            setHoverTarget(playerId, target);
+            setCycleHoverTarget(playerId, target);
             int feedbackInterval = plugin.getEditorManager()
                     .configuration()
                     .feedbackUpdateIntervalTicks();
@@ -282,6 +296,14 @@ public final class WandListener implements Listener {
                 && !(player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGUI);
     }
 
+    private void setCycleHoverTarget(UUID playerId, Display target) {
+        if (plugin.getConfig().getBoolean("editor.targeting.highlight-enabled", true)) {
+            setHoverTarget(playerId, target);
+        } else {
+            clearHover(playerId);
+        }
+    }
+
     private void setHoverTarget(UUID playerId, Display target) {
         UUID targetId = target == null ? null : target.getUniqueId();
         if (Objects.equals(hoverTargets.get(playerId), targetId)) {
@@ -305,7 +327,16 @@ public final class WandListener implements Listener {
 
     private void clearDisplayCycle(UUID playerId) {
         displayCycles.remove(playerId);
+        failedDisplayCycles.remove(playerId);
         clearHover(playerId);
+    }
+
+    private void failDisplayCycle(Player player) {
+        UUID playerId = player.getUniqueId();
+        displayCycles.remove(playerId);
+        clearHover(playerId);
+        failedDisplayCycles.add(playerId);
+        showUnavailableCycle(player);
     }
 
     private void clearHover(UUID playerId) {
@@ -395,7 +426,7 @@ public final class WandListener implements Listener {
             clearDisplayCycle(playerId);
             return;
         }
-        setHoverTarget(playerId, target);
+        setCycleHoverTarget(playerId, target);
         showCycleTarget(player, target);
     }
 
@@ -435,7 +466,7 @@ public final class WandListener implements Listener {
         return display;
     }
 
-    private static DisplayCycle.Candidate eligibleCycleCandidate(
+    private DisplayCycle.Candidate eligibleCycleCandidate(
             Player player,
             Location eye,
             Vector viewDirection,
@@ -444,6 +475,7 @@ public final class WandListener implements Listener {
         Location location = display.getLocation();
         if (!display.isValid()
                 || !display.getWorld().equals(player.getWorld())
+                || plugin.getEditorManager().isSelected(display.getUniqueId())
                 || !TransformationOperations.isFinite(eye)
                 || !TransformationOperations.isFinite(location)
                 || !TransformationOperations.isFinite(display.getTransformation())
@@ -608,6 +640,10 @@ public final class WandListener implements Listener {
     private static void showNoCycleTargets(Player player, double range) {
         player.sendActionBar(Lang.getComponent(
                 "&eNo visible displays within &f" + formatRange(range) + "&e blocks."));
+    }
+
+    private static void showUnavailableCycle(Player player) {
+        player.sendActionBar(Lang.getComponent("&eThat display is no longer available."));
     }
 
     private static String formatRange(double range) {

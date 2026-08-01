@@ -87,6 +87,8 @@ class WandListenerTest {
         when(plugin.getServer()).thenReturn(server);
         when(server.getScheduler()).thenReturn(scheduler);
         when(plugin.getConfig()).thenReturn(bukkitConfiguration);
+        when(bukkitConfiguration.getBoolean(
+                "editor.targeting.highlight-enabled", true)).thenReturn(true);
         when(scheduler.runTaskTimer(eq(plugin), any(Runnable.class), eq(1L), eq(1L)))
                 .thenAnswer(invocation -> {
                     hoverRunnable = invocation.getArgument(1);
@@ -148,6 +150,72 @@ class WandListenerTest {
 
         assertFalse(event.isCancelled());
         verify(editorManager, never()).clear(player);
+    }
+
+    @Test
+    void initiallyDisabledHighlightDoesNotGlowCyclePreview() {
+        TextDisplay display = eligibleTextDisplay(new UUID(21L, 22L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(bukkitConfiguration.getBoolean(
+                "editor.targeting.highlight-enabled", true)).thenReturn(false);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        when(server.getEntity(display.getUniqueId())).thenReturn(display);
+
+        PlayerItemHeldEvent event = new PlayerItemHeldEvent(player, 2, 3);
+        listener.onPlayerItemHeld(event);
+
+        assertTrue(event.isCancelled());
+        verify(display, never()).setGlowing(true);
+        verify(player).sendActionBar(any(Component.class));
+    }
+
+    @Test
+    void selectedDisplayIsExcludedFromCyclePreview() {
+        TextDisplay display = eligibleTextDisplay(new UUID(23L, 24L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(editorManager.isSelected(display.getUniqueId())).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 2, 3));
+
+        verify(editorManager).isSelected(display.getUniqueId());
+        verify(display, never()).setGlowing(true);
+        verify(player).sendActionBar(any(Component.class));
+    }
+
+    @Test
+    void invalidatedHoverPreviewLeavesRightClickFailClosed() {
+        TextDisplay display = eligibleTextDisplay(new UUID(25L, 26L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        when(server.getEntity(display.getUniqueId())).thenReturn(display);
+        doReturn(List.of(player)).when(server).getOnlinePlayers();
+
+        listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 2, 3));
+
+        when(display.isValid()).thenReturn(false);
+        hoverRunnable.run();
+        clearInvocations(player, world, editorManager);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of());
+        PlayerInteractEvent event = mock(PlayerInteractEvent.class);
+        when(event.getHand()).thenReturn(EquipmentSlot.HAND);
+        when(event.getPlayer()).thenReturn(player);
+        when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR);
+
+        listener.onPlayerInteract(event);
+
+        verify(world, never()).getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any());
+        verify(editorManager, never()).select(any(), any());
+        verify(player).sendActionBar(any(Component.class));
     }
 
     @Test
