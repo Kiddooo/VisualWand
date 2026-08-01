@@ -57,7 +57,7 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 
 ## 📦 Installation
 
-1. Download the `.jar` file from
+1. Download the `.jar` from [GitHub Releases](https://github.com/Kiddooo/VisualWand/releases)
 2. Place it in the `plugins/` folder of your Paper server
 3. Restart the server
 4. Done!
@@ -165,7 +165,7 @@ animations:
 
 ## 🤝 Issues
 
-Issue reporting and contact: https://nariaris.com/VisualWand
+Issue reporting and contact: https://github.com/Kiddooo/VisualWand/issues
 
 ## 📄 License
 
@@ -173,4 +173,4 @@ MIT License
 
 ---
 
-**Created with ❤️ by Nariaris**
+**Created with ❤️ by Nariaris · Modified by [Kiddooo](https://github.com/Kiddooo/VisualWand)**
