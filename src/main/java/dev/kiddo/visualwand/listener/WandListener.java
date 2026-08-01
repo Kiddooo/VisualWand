@@ -24,9 +24,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitTask;
@@ -55,6 +57,7 @@ public final class WandListener implements Listener {
     private final Map<UUID, UUID> hoverTargets = new HashMap<>();
     private final Map<UUID, HighlightState> highlightStates = new HashMap<>();
     private final Map<UUID, DeleteConfirmation> deleteConfirmations = new HashMap<>();
+    private final Map<UUID, DisplayCycle> displayCycles = new HashMap<>();
     private final BukkitTask hoverTask;
     private long hoverTicks;
 
@@ -65,6 +68,46 @@ public final class WandListener implements Listener {
                 this::tickHover,
                 1L,
                 1L);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+        DisplayCycle.Direction direction = DisplayCycle.Direction.fromSlots(
+                event.getPreviousSlot(), event.getNewSlot());
+        Player player = event.getPlayer();
+        if (direction == null
+                || !player.isSneaking()
+                || !isHoldingWand(player)
+                || !player.hasPermission("visualwand.use")
+                || player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGUI) {
+            return;
+        }
+
+        event.setCancelled(true);
+        UUID playerId = player.getUniqueId();
+        DisplayCycle cycle = displayCycles.get(playerId);
+        if (cycle == null) {
+            if (plugin.getEditorManager().session(player) != null) {
+                plugin.getEditorManager().clear(player);
+            }
+            startDisplayCycle(player, direction);
+            return;
+        }
+
+        double range = plugin.getEditorManager().configuration().targetCycleRange();
+        UUID targetId = cycle.advance(
+                direction,
+                candidateId -> resolveEligibleDisplay(player, candidateId, range) != null);
+        Display target = targetId == null
+                ? null
+                : resolveEligibleDisplay(player, targetId, range);
+        if (target == null) {
+            showNoCycleTargets(player, range);
+            clearDisplayCycle(playerId);
+            return;
+        }
+        setHoverTarget(playerId, target);
+        showCycleTarget(player, target);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -87,10 +130,30 @@ public final class WandListener implements Listener {
             return;
         }
 
+        UUID playerId = player.getUniqueId();
+        DisplayCycle cycle = displayCycles.get(playerId);
+        boolean hadCycle = cycle != null;
+        Display cycleTarget = cycle == null
+                ? null
+                : resolveEligibleDisplay(
+                        player,
+                        cycle.current(),
+                        plugin.getEditorManager().configuration().targetCycleRange());
+
         event.setUseInteractedBlock(Event.Result.DENY);
         event.setUseItemInHand(Event.Result.DENY);
         event.setCancelled(true);
-        clearHover(player.getUniqueId());
+        clearDisplayCycle(playerId);
+
+        if (hadCycle) {
+            clearDeleteConfirmation(player);
+            if (cycleTarget == null) {
+                player.sendActionBar(Lang.getComponent("&eThat display is no longer available."));
+                return;
+            }
+            selectDisplay(player, cycleTarget);
+            return;
+        }
 
         if (player.isSneaking()) {
             handleDeleteDisplay(player);
@@ -103,30 +166,37 @@ public final class WandListener implements Listener {
             openCreateMenu(player);
             return;
         }
-        if (plugin.getEditorManager().isLocked(display)) {
-            player.sendMessage(Lang.getPrefixed(
-                    "&eThis display is locked. Use the redstone torch to unlock it."));
-            new TransformMenuGUI(plugin, player, display).open();
-            return;
-        }
-
-        if (plugin.getEditorManager().select(player, display)) {
-            openEditMenu(player, display);
-        }
+        selectDisplay(player, display);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        clearHover(event.getPlayer().getUniqueId());
+        clearDisplayCycle(event.getPlayer().getUniqueId());
         clearDeleteConfirmation(event.getPlayer());
     }
 
     public void shutdown() {
         hoverTask.cancel();
+        for (UUID playerId : List.copyOf(displayCycles.keySet())) {
+            clearDisplayCycle(playerId);
+        }
         for (UUID playerId : List.copyOf(hoverTargets.keySet())) {
             clearHover(playerId);
         }
         restoreRemainingHighlights();
+        displayCycles.clear();
+        deleteConfirmations.clear();
+    }
+
+    public void reload() {
+        for (UUID playerId : List.copyOf(displayCycles.keySet())) {
+            clearDisplayCycle(playerId);
+        }
+        for (UUID playerId : List.copyOf(hoverTargets.keySet())) {
+            clearHover(playerId);
+        }
+        restoreRemainingHighlights();
+        displayCycles.clear();
         deleteConfirmations.clear();
     }
 
@@ -141,6 +211,12 @@ public final class WandListener implements Listener {
             for (UUID playerId : List.copyOf(hoverTargets.keySet())) {
                 clearHover(playerId);
             }
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                if (displayCycles.containsKey(player.getUniqueId())
+                        && !isValidHoverContext(player)) {
+                    clearDisplayCycle(player.getUniqueId());
+                }
+            }
         } else if (hoverTicks % interval == 0L) {
             for (Player player : plugin.getServer().getOnlinePlayers()) {
                 updateHoverTarget(player);
@@ -150,12 +226,29 @@ public final class WandListener implements Listener {
     }
 
     private void updateHoverTarget(Player player) {
-        if (!player.isOnline()
-                || !isHoldingWand(player)
-                || !player.hasPermission("visualwand.use")
-                || plugin.getEditorManager().session(player) != null
-                || player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGUI) {
-            clearHover(player.getUniqueId());
+        UUID playerId = player.getUniqueId();
+        if (!isValidHoverContext(player)) {
+            clearDisplayCycle(playerId);
+            return;
+        }
+
+        DisplayCycle cycle = displayCycles.get(playerId);
+        if (cycle != null) {
+            Display target = resolveEligibleDisplay(
+                    player,
+                    cycle.current(),
+                    plugin.getEditorManager().configuration().targetCycleRange());
+            if (target == null) {
+                clearDisplayCycle(playerId);
+                return;
+            }
+            setHoverTarget(playerId, target);
+            int feedbackInterval = plugin.getEditorManager()
+                    .configuration()
+                    .feedbackUpdateIntervalTicks();
+            if (hoverTicks % feedbackInterval == 0L) {
+                showCycleTarget(player, target);
+            }
             return;
         }
 
@@ -163,7 +256,7 @@ public final class WandListener implements Listener {
         if (target != null && plugin.getEditorManager().isSelected(target.getUniqueId())) {
             target = null;
         }
-        setHoverTarget(player.getUniqueId(), target);
+        setHoverTarget(playerId, target);
 
         int feedbackInterval = plugin.getEditorManager()
                 .configuration()
@@ -172,6 +265,14 @@ public final class WandListener implements Listener {
             double distance = player.getEyeLocation().distance(target.getLocation());
             player.sendActionBar(describeDisplay(target, distance));
         }
+    }
+
+    private boolean isValidHoverContext(Player player) {
+        return player.isOnline()
+                && isHoldingWand(player)
+                && player.hasPermission("visualwand.use")
+                && plugin.getEditorManager().session(player) == null
+                && !(player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGUI);
     }
 
     private void setHoverTarget(UUID playerId, Display target) {
@@ -193,6 +294,11 @@ public final class WandListener implements Listener {
         }
         target.setGlowing(true);
         hoverTargets.put(playerId, targetId);
+    }
+
+    private void clearDisplayCycle(UUID playerId) {
+        displayCycles.remove(playerId);
+        clearHover(playerId);
     }
 
     private void clearHover(UUID playerId) {
@@ -234,6 +340,102 @@ public final class WandListener implements Listener {
         }
         highlightStates.clear();
         hoverTargets.clear();
+    }
+
+    private void startDisplayCycle(Player player, DisplayCycle.Direction direction) {
+        double range = plugin.getEditorManager().configuration().targetCycleRange();
+        Location eye = player.getEyeLocation();
+        Vector viewDirection = normalizedDirection(eye);
+        double rangeSquared = range * range;
+        List<DisplayCycle.Candidate> candidates = new ArrayList<>();
+        for (Entity entity : player.getWorld().getNearbyEntities(
+                eye,
+                range,
+                range,
+                range,
+                WandListener::isSupportedDisplay)) {
+            DisplayCycle.Candidate candidate = toCycleCandidate(
+                    player, eye, viewDirection, rangeSquared, entity);
+            if (candidate != null) {
+                candidates.add(candidate);
+            }
+        }
+
+        Display exactTarget = getTargetedDisplay(player);
+        DisplayCycle cycle = DisplayCycle.start(
+                candidates,
+                exactTarget == null ? null : exactTarget.getUniqueId(),
+                direction);
+        if (cycle == null) {
+            showNoCycleTargets(player, range);
+            clearDisplayCycle(player.getUniqueId());
+            return;
+        }
+
+        UUID playerId = player.getUniqueId();
+        displayCycles.put(playerId, cycle);
+        Display target = resolveEligibleDisplay(player, cycle.current(), range);
+        if (target == null) {
+            UUID targetId = cycle.advance(
+                    direction,
+                    candidateId -> resolveEligibleDisplay(player, candidateId, range) != null);
+            target = targetId == null
+                    ? null
+                    : resolveEligibleDisplay(player, targetId, range);
+        }
+        if (target == null) {
+            showNoCycleTargets(player, range);
+            clearDisplayCycle(playerId);
+            return;
+        }
+        setHoverTarget(playerId, target);
+        showCycleTarget(player, target);
+    }
+
+    private static boolean isSupportedDisplay(Entity entity) {
+        return entity instanceof BlockDisplay
+                || entity instanceof ItemDisplay
+                || entity instanceof TextDisplay;
+    }
+
+    private DisplayCycle.Candidate toCycleCandidate(
+            Player player,
+            Location eye,
+            Vector viewDirection,
+            double rangeSquared,
+            Entity entity) {
+        if (!(entity instanceof Display display)
+                || !isEligibleDisplay(player, eye, display, rangeSquared)) {
+            return null;
+        }
+        Vector eyeToDisplay = display.getLocation().toVector().subtract(eye.toVector());
+        return DisplayCycle.candidate(display.getUniqueId(), viewDirection, eyeToDisplay);
+    }
+
+    private Display resolveEligibleDisplay(Player player, UUID displayId, double range) {
+        Entity resolved = plugin.getServer().getEntity(displayId);
+        if (!(resolved instanceof Display display)
+                || !isSupportedDisplay(display)
+                || !isEligibleDisplay(player, player.getEyeLocation(), display, range * range)) {
+            return null;
+        }
+        return display;
+    }
+
+    private static boolean isEligibleDisplay(
+            Player player,
+            Location eye,
+            Display display,
+            double rangeSquared) {
+        Location location = display.getLocation();
+        return display.isValid()
+                && display.getWorld().equals(player.getWorld())
+                && TransformationOperations.isFinite(eye)
+                && TransformationOperations.isFinite(location)
+                && TransformationOperations.isFinite(display.getTransformation())
+                && Double.isFinite(rangeSquared)
+                && eye.distanceSquared(location) <= rangeSquared
+                && player.hasLineOfSight(display);
     }
 
     /**
@@ -377,6 +579,33 @@ public final class WandListener implements Listener {
                             + " blocks");
         }
         return Lang.getComponent("&fText display &8| &f" + formattedDistance + " blocks");
+    }
+
+    private void showCycleTarget(Player player, Display display) {
+        double distance = player.getEyeLocation().distance(display.getLocation());
+        player.sendActionBar(describeDisplay(display, distance).append(Lang.getComponent(
+                " &8| &fShift+scroll to cycle &8| &fRMB to select")));
+    }
+
+    private static void showNoCycleTargets(Player player, double range) {
+        player.sendActionBar(Lang.getComponent(
+                "&eNo visible displays within &f" + formatRange(range) + "&e blocks."));
+    }
+
+    private static String formatRange(double range) {
+        return String.format(java.util.Locale.ROOT, "%.1f", range);
+    }
+
+    private void selectDisplay(Player player, Display display) {
+        if (plugin.getEditorManager().isLocked(display)) {
+            player.sendMessage(Lang.getPrefixed(
+                    "&eThis display is locked. Use the redstone torch to unlock it."));
+            new TransformMenuGUI(plugin, player, display).open();
+            return;
+        }
+        if (plugin.getEditorManager().select(player, display)) {
+            openEditMenu(player, display);
+        }
     }
 
     private boolean isHoldingWand(Player player) {
