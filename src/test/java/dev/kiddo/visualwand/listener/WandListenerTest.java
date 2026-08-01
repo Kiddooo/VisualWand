@@ -267,6 +267,24 @@ class WandListenerTest {
     }
 
     @Test
+    void sneakingRightClickSelectsTargetInsteadOfDeletingIt() {
+        TextDisplay display = eligibleTextDisplay(new UUID(27L, 28L), 3.0D);
+        when(player.isSneaking()).thenReturn(true);
+        when(world.getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any()))
+                .thenReturn(List.of(display));
+        PlayerInteractEvent event = mock(PlayerInteractEvent.class);
+        when(event.getHand()).thenReturn(EquipmentSlot.HAND);
+        when(event.getPlayer()).thenReturn(player);
+        when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR);
+
+        listener.onPlayerInteract(event);
+
+        verify(editorManager).select(player, display);
+        verify(display, never()).remove();
+    }
+
+    @Test
     void previewOutsideCurrentConeRightClickFailsClosed() {
         TextDisplay display = eligibleTextDisplay(new UUID(15L, 16L), 3.0D);
         when(player.isSneaking()).thenReturn(true);

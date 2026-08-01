@@ -8,7 +8,7 @@ wand:
     - "&fChoose a click-editing mode in Transformations"
     - "&fLMB &8→ &aIncrease &7| &fRMB &8→ &cDecrease"
     - "&fDrop wand &8→ &eReopen mode menu"
-    - "&fShift + RMB &8→ &cDelete object"
+    - "&fShift + scroll &8→ &eCycle nearby objects"
     - "&7"
     - "&8Plugin by MiniGames.Cafe"
 

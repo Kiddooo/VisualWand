@@ -16,7 +16,9 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 - Right-click an existing object to select it and open its edit menu
 - Choose a transformation mode, then use **LMB to increase** and **RMB to decrease**
 - Press **Drop** while holding the wand to reopen the mode menu
-- Shift + RMB deletes an object through confirmation
+- Keep the wand selected and hold **Shift** while scrolling to cycle visible displays in front of you
+  and in line of sight within the configured range (8 blocks by default)
+- Starting a cycle exits any current editor selection; **RMB** opens the highlighted display
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
 
@@ -102,11 +104,16 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 6. Press **Drop** while holding the wand to reopen the transformation menu
 7. Use the menu for presets, undo/redo, transform copy/paste, resets, cancel, or deselect
 
+To choose among nearby displays, keep the wand selected and hold **Shift** while scrolling.
+Cycling first exits any current editor selection, then moves through visible displays in front of you
+and in line of sight within the configured range (8 blocks by default). Press **RMB** to open the
+highlighted display.
+
 Animations and entity-specific properties remain available from the edit menu. No client mod is
 required.
 
 ### Deleting Objects
-- Aim at object + **Shift + RMB** = Delete
+- Select the object, then use the **TNT Delete** control in its edit menu.
 
 ---
 
@@ -125,6 +132,8 @@ gizmo:
 
 editor:
   max-distance: 50.0
+  targeting:
+    cycle-range: 8.0
   steps:
     translation: {fine: 0.01, normal: 0.1, coarse: 1.0}
     rotation-degrees: {fine: 1.0, normal: 5.0, coarse: 15.0}
@@ -170,7 +179,10 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 - PPM na istniejącym obiekcie wybiera go i otwiera menu edycji
 - Wybierz tryb transformacji, potem używaj **LPM, aby zwiększać**, i **PPM, aby zmniejszać**
 - Naciśnij **wyrzucenie przedmiotu**, trzymając różdżkę, aby ponownie otworzyć menu trybów
-- Shift + PPM usuwa obiekt po potwierdzeniu
+- Trzymając wybraną różdżkę, przytrzymaj **Shift** i przewijaj, aby przełączać widoczne obiekty
+  Display znajdujące się przed graczem i w zasięgu wzroku, w skonfigurowanym promieniu
+  (domyślnie 8 bloków)
+- Rozpoczęcie przełączania kończy bieżący wybór edytora; **PPM** otwiera podświetlony obiekt
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
 
@@ -257,10 +269,15 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 7. Menu zawiera presety, cofanie/ponawianie, kopiowanie transformacji, resety,
    anulowanie trybu i odznaczenie obiektu
 
+Aby wybrać jeden z pobliskich obiektów Display, trzymaj wybraną różdżkę, przytrzymaj **Shift**
+i przewijaj. Przełączanie najpierw kończy bieżący wybór edytora, a następnie przechodzi przez
+widoczne obiekty znajdujące się przed graczem i w zasięgu wzroku, w skonfigurowanym promieniu
+(domyślnie 8 bloków). Naciśnij **PPM**, aby otworzyć podświetlony obiekt.
+
 Animacje i właściwości danego typu obiektu pozostają dostępne w menu edycji.
 
 ### Usuwanie obiektów
-- Celuj w obiekt + **Shift + PPM** = Usuń
+- Wybierz obiekt, a następnie użyj opcji **Usuń (TNT)** w menu edycji.
 
 ---
 
@@ -279,6 +296,8 @@ gizmo:
 
 editor:
   max-distance: 50.0
+  targeting:
+    cycle-range: 8.0
   steps:
     translation: {fine: 0.01, normal: 0.1, coarse: 1.0}
     rotation-degrees: {fine: 1.0, normal: 5.0, coarse: 15.0}

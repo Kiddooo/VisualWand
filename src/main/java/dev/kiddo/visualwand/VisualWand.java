@@ -83,6 +83,7 @@ public class VisualWand extends JavaPlugin {
 
     public void reload() {
         editorManager.clearAll("Display editing was cleared by configuration reload.");
+        wandListener.reload();
         reloadConfig();
         editorManager.reload();
         wandItem.reload();

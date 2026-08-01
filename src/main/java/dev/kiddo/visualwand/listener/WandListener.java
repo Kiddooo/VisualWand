@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Normal wand creation, strict display targeting, selection, and confirmed deletion.
+ * Normal wand creation, strict display targeting, and selection.
  * Active click editing is handled earlier by {@link EditorInputListener}.
  */
 public final class WandListener implements Listener {
@@ -58,7 +58,6 @@ public final class WandListener implements Listener {
     private final VisualWand plugin;
     private final Map<UUID, UUID> hoverTargets = new HashMap<>();
     private final Map<UUID, HighlightState> highlightStates = new HashMap<>();
-    private final Map<UUID, DeleteConfirmation> deleteConfirmations = new HashMap<>();
     private final Map<UUID, DisplayCycle> displayCycles = new HashMap<>();
     private final Set<UUID> failedDisplayCycles = new HashSet<>();
     private final BukkitTask hoverTask;
@@ -150,7 +149,6 @@ public final class WandListener implements Listener {
         clearDisplayCycle(playerId);
 
         if (hadCycle) {
-            clearDeleteConfirmation(player);
             if (cycleTarget == null) {
                 showUnavailableCycle(player);
                 return;
@@ -159,12 +157,6 @@ public final class WandListener implements Listener {
             return;
         }
 
-        if (player.isSneaking()) {
-            handleDeleteDisplay(player);
-            return;
-        }
-
-        clearDeleteConfirmation(player);
         Display display = getTargetedDisplay(player);
         if (display == null) {
             openCreateMenu(player);
@@ -176,7 +168,6 @@ public final class WandListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         clearDisplayCycle(event.getPlayer().getUniqueId());
-        clearDeleteConfirmation(event.getPlayer());
     }
 
     public void shutdown() {
@@ -190,7 +181,6 @@ public final class WandListener implements Listener {
         restoreRemainingHighlights();
         displayCycles.clear();
         failedDisplayCycles.clear();
-        deleteConfirmations.clear();
     }
 
     public void reload() {
@@ -203,7 +193,6 @@ public final class WandListener implements Listener {
         restoreRemainingHighlights();
         displayCycles.clear();
         failedDisplayCycles.clear();
-        deleteConfirmations.clear();
     }
 
     private void tickHover() {
@@ -239,7 +228,6 @@ public final class WandListener implements Listener {
                 updateHoverTarget(player);
             }
         }
-        pruneDeleteConfirmations();
     }
 
     private void updateHoverTarget(Player player) {
@@ -358,14 +346,6 @@ public final class WandListener implements Listener {
         Entity resolved = plugin.getServer().getEntity(previousId);
         if (resolved instanceof Display display && display.isValid()) {
             display.setGlowing(state.originalGlowing);
-        }
-    }
-
-    private void clearHoverOfDisplay(UUID displayId) {
-        for (Map.Entry<UUID, UUID> entry : List.copyOf(hoverTargets.entrySet())) {
-            if (entry.getValue().equals(displayId)) {
-                clearHover(entry.getKey());
-            }
         }
     }
 
@@ -676,102 +656,6 @@ public final class WandListener implements Listener {
         new EditMenuGUI(plugin, player, display).open();
     }
 
-    private void handleDeleteDisplay(Player player) {
-        Display display = getTargetedDisplay(player);
-        if (display == null) {
-            clearDeleteConfirmation(player);
-            player.sendMessage(Lang.getPrefixed("&cNo display object found in line of sight!"));
-            return;
-        }
-
-        if (plugin.getEditorManager().isLocked(display)) {
-            clearDeleteConfirmation(player);
-            player.sendMessage(Lang.getPrefixed(
-                    "&eThis display is locked. Use the redstone torch to unlock it."));
-            new TransformMenuGUI(plugin, player, display).open();
-            return;
-        }
-
-        UUID playerId = player.getUniqueId();
-        DeleteConfirmation pending = deleteConfirmations.get(playerId);
-        long now = System.currentTimeMillis();
-        if (pending != null) {
-            Entity pendingEntity = plugin.getServer().getEntity(pending.displayId());
-            if (!(pendingEntity instanceof Display pendingDisplay)
-                    || !pendingDisplay.isValid()
-                    || pending.expiresAtMillis() <= now) {
-                deleteConfirmations.remove(playerId);
-                player.sendMessage(Lang.getPrefixed("&eDelete confirmation expired."));
-            } else if (pending.displayId().equals(display.getUniqueId())) {
-                deleteConfirmations.remove(playerId);
-                deleteDisplay(player, display);
-                return;
-            } else {
-                armDeleteConfirmation(player, display, true);
-                return;
-            }
-        }
-        armDeleteConfirmation(player, display, false);
-    }
-
-    private void armDeleteConfirmation(Player player, Display display, boolean targetChanged) {
-        long timeoutMillis = deleteConfirmationTimeoutMillis();
-        deleteConfirmations.put(
-                player.getUniqueId(),
-                new DeleteConfirmation(
-                        display.getUniqueId(),
-                        System.currentTimeMillis() + timeoutMillis));
-
-        String seconds = formatSeconds(timeoutMillis);
-        String type = getDisplayTypeName(display);
-        player.sendMessage(Lang.getPrefixed(targetChanged
-                ? "&eDelete target changed. &fCrouch + right-click again within &e"
-                        + seconds + "s &fto confirm deleting " + type + "."
-                : "&cDelete " + type + "? &fCrouch + right-click again within &e"
-                        + seconds + "s &fto confirm."));
-        player.sendActionBar(Lang.getComponent(
-                "&cDelete armed &8| &f" + type
-                        + " &8| &fCrouch + right-click again within &e" + seconds + "s"));
-    }
-
-    private void deleteDisplay(Player player, Display display) {
-        UUID displayId = display.getUniqueId();
-        clearHoverOfDisplay(displayId);
-        clearDeleteConfirmation(player);
-        plugin.getEditorManager().clearEditorsOf(displayId);
-        plugin.getAnimationManager().stopAnimation(display);
-        display.remove();
-        player.sendMessage(Lang.getPrefixed("&cDeleted " + getDisplayTypeName(display) + "."));
-    }
-
-    private void clearDeleteConfirmation(Player player) {
-        deleteConfirmations.remove(player.getUniqueId());
-    }
-
-    private void pruneDeleteConfirmations() {
-        long now = System.currentTimeMillis();
-        deleteConfirmations.entrySet().removeIf(entry -> {
-            Player player = plugin.getServer().getPlayer(entry.getKey());
-            Entity resolved = plugin.getServer().getEntity(entry.getValue().displayId());
-            return player == null
-                    || !player.isOnline()
-                    || !isHoldingWand(player)
-                    || !(resolved instanceof Display display)
-                    || !display.isValid()
-                    || entry.getValue().expiresAtMillis() <= now;
-        });
-    }
-
-    private long deleteConfirmationTimeoutMillis() {
-        double configuredSeconds = plugin.getConfig().getDouble(
-                "editor.delete-confirmation.timeout-seconds",
-                5.0D);
-        if (!Double.isFinite(configuredSeconds) || configuredSeconds <= 0.0D) {
-            configuredSeconds = 5.0D;
-        }
-        return Math.max(1_000L, Math.round(configuredSeconds * 1_000.0D));
-    }
-
     private static Vector normalizedDirection(Location location) {
         Vector direction = location.getDirection();
         if (!TransformationOperations.isFinite(location)
@@ -779,14 +663,6 @@ public final class WandListener implements Listener {
             return new Vector(0.0D, 0.0D, 1.0D);
         }
         return direction.normalize();
-    }
-
-    private static String formatSeconds(long millis) {
-        double seconds = millis / 1_000.0D;
-        if (Math.abs(seconds - Math.rint(seconds)) < 1.0E-9D) {
-            return String.valueOf((long) Math.rint(seconds));
-        }
-        return String.format(java.util.Locale.ROOT, "%.1f", seconds);
     }
 
     private static String getDisplayTypeName(Display display) {
@@ -811,6 +687,4 @@ public final class WandListener implements Listener {
         }
     }
 
-    private record DeleteConfirmation(UUID displayId, long expiresAtMillis) {
-    }
 }

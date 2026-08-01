@@ -42,7 +42,12 @@ public class WandItem {
             meta.displayName(Lang.getComponent("&6✦ &eArchitect's Wand &6✦"));
 
             // Set lore from language file
-            meta.lore(Lang.getComponents(List.of("&7", "&fRMB in air: &eCreate objects", "&fRMB on object: &eEdit", "&fShift + RMB: &cDelete", "&7")));
+            meta.lore(Lang.getComponents(List.of(
+                    "&7",
+                    "&fRMB in air: &eCreate objects",
+                    "&fRMB on object: &eEdit",
+                    "&fShift + scroll: &eCycle nearby objects",
+                    "&7")));
 
             // Add enchant glow
             meta.addEnchant(Enchantment.MENDING, 1, true);
