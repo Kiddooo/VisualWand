@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 public final class EditorConfiguration {
 
     private static final double DEFAULT_MAX_DISTANCE = 50.0D;
+    private static final double DEFAULT_TARGET_CYCLE_RANGE = 8.0D;
     private static final Steps DEFAULT_TRANSLATION_STEPS = new Steps(0.01D, 0.1D, 1.0D);
     private static final Steps DEFAULT_ROTATION_STEPS = new Steps(1.0D, 5.0D, 15.0D);
     private static final Steps DEFAULT_SCALE_STEPS = new Steps(0.01D, 0.1D, 0.5D);
@@ -24,6 +25,7 @@ public final class EditorConfiguration {
     private static final boolean DEFAULT_GLOW_SELECTED = true;
 
     private final double maxDistance;
+    private final double targetCycleRange;
     private final Steps translationSteps;
     private final Steps rotationSteps;
     private final Steps scaleSteps;
@@ -37,6 +39,7 @@ public final class EditorConfiguration {
 
     private EditorConfiguration(
             double maxDistance,
+            double targetCycleRange,
             Steps translationSteps,
             Steps rotationSteps,
             Steps scaleSteps,
@@ -48,6 +51,7 @@ public final class EditorConfiguration {
             int feedbackUpdateIntervalTicks,
             boolean glowSelected) {
         this.maxDistance = maxDistance;
+        this.targetCycleRange = targetCycleRange;
         this.translationSteps = translationSteps;
         this.rotationSteps = rotationSteps;
         this.scaleSteps = scaleSteps;
@@ -71,6 +75,16 @@ public final class EditorConfiguration {
 
         double maxDistance = positiveDouble(
                 configuration, logger, "editor.max-distance", DEFAULT_MAX_DISTANCE);
+        double targetCycleRange = positiveDouble(
+                configuration,
+                logger,
+                "editor.targeting.cycle-range",
+                DEFAULT_TARGET_CYCLE_RANGE);
+        if (targetCycleRange > maxDistance) {
+            logger.warning("Configuration value at 'editor.targeting.cycle-range' exceeds "
+                    + "'editor.max-distance'; clamping to " + maxDistance + ".");
+            targetCycleRange = maxDistance;
+        }
         Steps translationSteps = orderedSteps(
                 configuration, logger, "editor.steps.translation", DEFAULT_TRANSLATION_STEPS);
         Steps rotationSteps = orderedSteps(
@@ -134,6 +148,7 @@ public final class EditorConfiguration {
 
         return new EditorConfiguration(
                 maxDistance,
+                targetCycleRange,
                 translationSteps,
                 rotationSteps,
                 scaleSteps,
@@ -148,6 +163,10 @@ public final class EditorConfiguration {
 
     public double maxDistance() {
         return maxDistance;
+    }
+
+    public double targetCycleRange() {
+        return targetCycleRange;
     }
 
     public double step(StepType type, StepPreset preset) {

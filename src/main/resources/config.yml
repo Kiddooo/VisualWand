@@ -31,9 +31,7 @@ editor:
   targeting:
     highlight-enabled: true
     update-interval: 2
-
-  delete-confirmation:
-    timeout-seconds: 5.0
+    cycle-range: 8.0
 
   steps:
     translation:
