@@ -11,6 +11,8 @@ import java.util.function.Predicate;
 
 final class DisplayCycle {
 
+    private static final double MINIMUM_ALIGNMENT = Math.cos(Math.toRadians(45.0D));
+    private static final double ALIGNMENT_EPSILON = 1.0E-12D;
     private static final double MINIMUM_LENGTH_SQUARED = 1.0E-12D;
 
     private final List<UUID> displayIds;
@@ -37,7 +39,8 @@ final class DisplayCycle {
 
         double alignment = viewDirection.dot(eyeToDisplay)
                 / (Math.sqrt(viewLengthSquared) * Math.sqrt(distanceSquared));
-        if (!Double.isFinite(alignment) || alignment <= 0.0D) {
+        if (!Double.isFinite(alignment)
+                || alignment + ALIGNMENT_EPSILON < MINIMUM_ALIGNMENT) {
             return null;
         }
         return new Candidate(displayId, alignment, distanceSquared);

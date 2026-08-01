@@ -12,7 +12,7 @@
 
 ## File Structure
 
-- Create `src/main/java/dev/kiddo/visualwand/listener/DisplayCycle.java`: pure direction, front-half-space eligibility, ranking, and ring navigation contracts.
+- Create `src/main/java/dev/kiddo/visualwand/listener/DisplayCycle.java`: pure direction, view-cone eligibility, ranking, and ring navigation contracts.
 - Create `src/test/java/dev/kiddo/visualwand/listener/DisplayCycleTest.java`: cycle-model contract tests.
 - Create `src/test/java/dev/kiddo/visualwand/editor/EditorConfigurationTest.java`: range default, fallback, and clamp tests.
 - Create `src/test/java/dev/kiddo/visualwand/listener/WandListenerTest.java`: held-slot routing and editor-exit tests.
@@ -186,15 +186,16 @@ class DisplayCycleTest {
     }
 
     @Test
-    void frontHalfSpaceAcceptsAnyPositiveAlignmentAndRejectsSideOrBehind() {
+    void viewConeIncludesBoundaryAndRejectsOutOfViewCandidates() {
         Vector view = new Vector(0.0D, 0.0D, 1.0D);
 
-        DisplayCycle.Candidate barelyAhead = DisplayCycle.candidate(
-                A, view, new Vector(1_000.0D, 0.0D, 0.001D));
+        DisplayCycle.Candidate boundary = DisplayCycle.candidate(
+                A, view, new Vector(1.0D, 0.0D, 1.0D));
+        DisplayCycle.Candidate outside = DisplayCycle.candidate(
+                B, view, new Vector(1.01D, 0.0D, 1.0D));
 
-        assertEquals(A, barelyAhead.displayId());
-        assertNull(DisplayCycle.candidate(B, view, new Vector(1.0D, 0.0D, 0.0D)));
-        assertNull(DisplayCycle.candidate(C, view, new Vector(0.0D, 0.0D, -1.0D)));
+        assertEquals(A, boundary.displayId());
+        assertNull(outside);
     }
 
     @Test
@@ -278,6 +279,8 @@ import java.util.function.Predicate;
 
 final class DisplayCycle {
 
+    private static final double MINIMUM_ALIGNMENT = Math.cos(Math.toRadians(45.0D));
+    private static final double ALIGNMENT_EPSILON = 1.0E-12D;
     private static final double MINIMUM_LENGTH_SQUARED = 1.0E-12D;
 
     private final List<UUID> displayIds;
@@ -301,7 +304,8 @@ final class DisplayCycle {
         }
         double alignment = viewDirection.dot(eyeToDisplay)
                 / Math.sqrt(viewLengthSquared * distanceSquared);
-        if (!Double.isFinite(alignment) || alignment <= 0.0D) {
+        if (!Double.isFinite(alignment)
+                || alignment + ALIGNMENT_EPSILON < MINIMUM_ALIGNMENT) {
             return null;
         }
         return new Candidate(displayId, alignment, distanceSquared);
@@ -845,4 +849,4 @@ Done (...s)! For help, type "help"
 
 Search production sources, resources, and README for `DeleteConfirmation`, `delete-confirmation`, and Shift+RMB deletion wording. Expected: no wand-deletion implementation or documentation remains; unrelated GUI modifier text such as `Shift+RMB: -0.1` in property controls remains unchanged.
 
-Confirm the implementation covers every spec path: both slot directions and hotbar wrap, stable ordering, line of sight, FOV-independent forward-half-space eligibility, range clamp, active-session exit, stale-preview fail-closed behavior, glow cleanup, reload/quit/shutdown cleanup, locked-display handling, RMB confirmation, and GUI-only deletion.
+Confirm the implementation covers every spec path: both slot directions and hotbar wrap, stable ordering, line of sight, 90-degree forward-cone eligibility, range clamp, active-session exit, stale-preview fail-closed behavior, glow cleanup, reload/quit/shutdown cleanup, locked-display handling, RMB confirmation, and GUI-only deletion.

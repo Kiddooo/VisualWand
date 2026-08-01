@@ -16,8 +16,8 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 - Right-click an existing object to select it and open its edit menu
 - Choose a transformation mode, then use **LMB to increase** and **RMB to decrease**
 - Press **Drop** while holding the wand to reopen the mode menu
-- Keep the wand selected and hold **Shift** while scrolling to cycle every line-of-sight display
-  in front of you within the configured range (8 blocks by default), regardless of client FOV
+- Keep the wand selected and hold **Shift** while scrolling to cycle line-of-sight displays inside
+  the forward view cone and configured range (8 blocks by default)
 - Starting a cycle exits any current editor selection; **RMB** opens the highlighted display
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
@@ -105,9 +105,9 @@ A plugin that allows players and administrators to create, edit, and animate Dis
 7. Use the menu for presets, undo/redo, transform copy/paste, resets, cancel, or deselect
 
 To choose among nearby displays, keep the wand selected and hold **Shift** while scrolling.
-Cycling first exits any current editor selection, then moves through every line-of-sight display in
-front of you within the configured range (8 blocks by default), regardless of the client's FOV
-setting. Press **RMB** to open the highlighted display.
+Cycling first exits any current editor selection, then moves through line-of-sight displays inside
+the forward view cone and configured range (8 blocks by default). Press **RMB** to open the
+highlighted display.
 
 Animations and entity-specific properties remain available from the edit menu. No client mod is
 required.
@@ -179,9 +179,9 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 - PPM na istniejącym obiekcie wybiera go i otwiera menu edycji
 - Wybierz tryb transformacji, potem używaj **LPM, aby zwiększać**, i **PPM, aby zmniejszać**
 - Naciśnij **wyrzucenie przedmiotu**, trzymając różdżkę, aby ponownie otworzyć menu trybów
-- Trzymając wybraną różdżkę, przytrzymaj **Shift** i przewijaj, aby przełączać wszystkie obiekty
-  Display przed graczem, które są w zasięgu wzroku i skonfigurowanym promieniu (domyślnie
-  8 bloków), niezależnie od ustawienia FOV klienta
+- Trzymając wybraną różdżkę, przytrzymaj **Shift** i przewijaj, aby przełączać obiekty Display
+  znajdujące się w przednim polu widzenia, zasięgu wzroku i skonfigurowanym promieniu
+  (domyślnie 8 bloków)
 - Rozpoczęcie przełączania kończy bieżący wybór edytora; **PPM** otwiera podświetlony obiekt
 
 ![Tool](https://cdn.modrinth.com/data/cached_images/0b766122818bd6540b28292eb473b86ef405b923.png)
@@ -271,8 +271,8 @@ Plugin typu "In-Game Editor" pozwalający graczom i administratorom tworzyć, ed
 
 Aby wybrać jeden z pobliskich obiektów Display, trzymaj wybraną różdżkę, przytrzymaj **Shift**
 i przewijaj. Przełączanie najpierw kończy bieżący wybór edytora, a następnie przechodzi przez
-wszystkie obiekty przed graczem, które są w zasięgu wzroku i skonfigurowanym promieniu
-(domyślnie 8 bloków), niezależnie od FOV klienta. Naciśnij **PPM**, aby otworzyć podświetlony obiekt.
+obiekty znajdujące się w przednim polu widzenia, zasięgu wzroku i skonfigurowanym promieniu
+(domyślnie 8 bloków). Naciśnij **PPM**, aby otworzyć podświetlony obiekt.
 
 Animacje i właściwości danego typu obiektu pozostają dostępne w menu edycji.
 

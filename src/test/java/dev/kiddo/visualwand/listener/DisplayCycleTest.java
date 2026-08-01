@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -35,20 +34,21 @@ class DisplayCycleTest {
     }
 
     @Test
-    void frontHalfSpaceAcceptsAnyPositiveAlignmentAndRejectsSideOrBehind() {
+    void viewConeIncludesBoundaryAndRejectsOutOfViewCandidates() {
         Vector view = new Vector(0.0D, 0.0D, 1.0D);
 
-        DisplayCycle.Candidate barelyAhead = DisplayCycle.candidate(
-                A, view, new Vector(1_000.0D, 0.0D, 0.001D));
+        DisplayCycle.Candidate boundary = DisplayCycle.candidate(
+                A, view, new Vector(1.0D, 0.0D, 1.0D));
+        DisplayCycle.Candidate outside = DisplayCycle.candidate(
+                B, view, new Vector(1.01D, 0.0D, 1.0D));
         DisplayCycle.Candidate largeParallel = DisplayCycle.candidate(
                 C,
                 new Vector(1.0E100D, 0.0D, 0.0D),
                 new Vector(1.0E100D, 0.0D, 0.0D));
 
-        assertNotNull(barelyAhead);
-        assertEquals(A, barelyAhead.displayId());
-        assertNull(DisplayCycle.candidate(B, view, new Vector(1.0D, 0.0D, 0.0D)));
-        assertNull(DisplayCycle.candidate(B, view, new Vector(0.0D, 0.0D, -1.0D)));
+        assertEquals(A, boundary.displayId());
+        assertEquals(2.0D, boundary.distanceSquared());
+        assertNull(outside);
         assertEquals(C, largeParallel.displayId());
         assertNull(DisplayCycle.candidate(A, new Vector(), new Vector(0.0D, 0.0D, 1.0D)));
         assertNull(DisplayCycle.candidate(
