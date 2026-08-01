@@ -302,11 +302,13 @@ class WandListenerTest {
                 "editor.targeting.highlight-enabled", true)).thenReturn(false);
         when(editorManager.session(player)).thenReturn(mock(EditorSession.class));
         hoverRunnable.run();
-        clearInvocations(editorManager);
+        clearInvocations(editorManager, world);
 
         listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 3, 4));
 
         verify(editorManager).clear(player);
+        verify(world, times(2)).getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any());
     }
 
     @Test
@@ -326,11 +328,13 @@ class WandListenerTest {
         when(display.isValid()).thenReturn(false);
         hoverRunnable.run();
         when(editorManager.session(player)).thenReturn(mock(EditorSession.class));
-        clearInvocations(editorManager);
+        clearInvocations(editorManager, world);
 
         listener.onPlayerItemHeld(new PlayerItemHeldEvent(player, 3, 4));
 
         verify(editorManager).clear(player);
+        verify(world, times(2)).getNearbyEntities(
+                any(Location.class), anyDouble(), anyDouble(), anyDouble(), any());
     }
 
     private TextDisplay eligibleTextDisplay(UUID displayId, double z) {
